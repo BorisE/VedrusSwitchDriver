@@ -1,23 +1,18 @@
 //tabs=4
 // --------------------------------------------------------------------------------
-// TODO fill in this information for your driver, then remove this line!
+// ASCOM Switch driver for Vedrus Observatory
 //
-// ASCOM Switch driver for Vedrus
+// Description:	Based on switch driver for Aviosys IP9212 v2
 //
-// Description:	Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam 
-//				nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam 
-//				erat, sed diam voluptua. At vero eos et accusam et justo duo 
-//				dolores et ea rebum. Stet clita kasd gubergren, no sea takimata 
-//				sanctus est Lorem ipsum dolor sit amet.
-//
-// Implements:	ASCOM Switch interface version: <To be completed by driver developer>
-// Author:		(XXX) Your N. Here <your@email.here>
+// Implements:	ASCOM Switch interface version: ISwitchV2
+// Author:		(XXX) Boris Emchenko <support@astromania.info>
 //
 // Edit Log:
 //
 // Date			Who	Vers	Description
 // -----------	---	-----	-------------------------------------------------------
-// dd-mmm-yyyy	XXX	6.0.0	Initial edit, created from ASCOM driver template
+// 15-06-2015	XXX 2.0.10	Last IP9212 release
+// 02-09-2017	XXX 1.0.0	Deep alpha1
 // --------------------------------------------------------------------------------
 //
 
@@ -39,6 +34,7 @@ using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
 using System.Globalization;
 using System.Collections;
+using System.Reflection;
 
 namespace ASCOM.Vedrus
 {
@@ -61,42 +57,77 @@ namespace ASCOM.Vedrus
     public class Switch : ISwitchV2
     {
         /// <summary>
-        /// ASCOM DeviceID (COM ProgID) for this driver.
-        /// The DeviceID is used by ASCOM applications to load the driver at runtime.
+        /// ASCOM Switch Driver for Vedurs. Based on IP9212 v2 driver
         /// </summary>
-        internal static string driverID = "ASCOM.Vedrus.Switch";
-        // TODO Change the descriptive string for your driver then remove this line
+        internal static string driverID = "ASCOM.Vedrus1.Switch";
+
+
         /// <summary>
-        /// Driver description that displays in the ASCOM Chooser.
+        /// Hardware layer class for this Switch
         /// </summary>
-        private static string driverDescription = "ASCOM Switch Driver for Vedrus.";
-
-        internal static string comPortProfileName = "COM Port"; // Constants used for Profile persistence
-        internal static string comPortDefault = "COM1";
-        internal static string traceStateProfileName = "Trace Level";
-        internal static string traceStateDefault = "false";
-
-        internal static string comPort; // Variables to hold the currrent device configuration
+        Web_switch_hardware_class Hardware;
 
         /// <summary>
         /// Private variable to hold the connected state
         /// </summary>
         private bool connectedState;
+        private const bool CONNECTIONCHECK_FORCED = true; //Force to skip cache and get straight value
+        private const bool CONNECTIONCHECK_CACHED = false; //Use cached checking if possible
 
         /// <summary>
-        /// Private variable to hold an ASCOM Utilities object
+        /// Private variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
         /// </summary>
-        private Util utilities;
+        private static TraceLogger tl;
+
+        //Settings
+        #region Settings variables        
+
+        internal static string traceStateProfileName = "Trace Level";
+        internal static string traceStateDefault = "true";
+        internal static bool traceState = Convert.ToBoolean(traceStateDefault);
+
+        public static string ip_addr, ip_port, ip_login, ip_pass;
+        internal static string ip_addr_profilename = "IP address", ip_port_profilename = "Port number", ip_login_profilename = "login", ip_pass_profilename = "password";
+        internal static string ip_addr_default = "192.168.1.90", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "12345678";
+
+        internal static string switch_name_profilename = "switchname";
+        internal static string switch_description_profilename = "switchdescription";
+        // ARRAY WITH SWITCH NAMES AND DESCRIPTION
+        public class switchDataClass
+        {
+            public string Name = "";
+            public string Desc = "";
+            public bool? Val = null;
+        }
+        public static List<switchDataClass> SwitchData = new List<switchDataClass>();
+
+        public static string currentLang;
+        internal static string currentLocalizationProfileName = "Current language";
+        internal static string currentLangDefault = "ru-RU";
+
+        public static int ConnectCheck_Cache_Timeout;
+        internal static string ConnectCheck_Cache_Timeout_ProfileName = "ConnectCheck_Cache_Timeout";
+        internal static int ConnectCheck_Cache_Timeout_def = 20;
+
+        public static int OutputRead_Cache_Timeout;
+        internal static string OutputRead_Cache_Timeout_ProfileName = "OutputRead_Cache_Timeout";
+        internal static int OutputRead_Cache_Timeout_def = 5;
+
+        public static int InputRead_Cache_Timeout;
+        internal static string InputRead_Cache_Timeout_ProfileName = "InputRead_Cache_Timeout";
+        internal static int InputRead_Cache_Timeout_def = 5;
+
+        #endregion Settings variables
 
         /// <summary>
-        /// Private variable to hold an ASCOM AstroUtilities object to provide the Range method
+        /// Driver description that displays in the ASCOM Chooser.
         /// </summary>
-        private AstroUtils astroUtilities;
+        private static string driverDescriptionShort = "Vedrus Switch ver1";
+        private static string driverDescription = "ASCOM switch driver for Vedrus power controller based on ISwitchV2 interface. Written by Boris Emchenko http://astromania.info";
 
-        /// <summary>
-        /// Variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
-        /// </summary>
-        internal static TraceLogger tl;
+        // NUMBER OF SWITCHES
+        internal static short numSwitch = 2;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vedrus"/> class.
@@ -105,14 +136,25 @@ namespace ASCOM.Vedrus
         public Switch()
         {
             tl = new TraceLogger("", "Vedrus");
-            ReadProfile(); // Read device configuration from the ASCOM Profile store
-
+            tl.Enabled = traceState; //set the default value for start (override further)
             tl.LogMessage("Switch", "Starting initialisation");
 
+            //init hardware class
+            Hardware = new Web_switch_hardware_class(traceState);
+
+
+            // init SwitchData array
+            for (int i = 0; i < numSwitch; i++)
+            {
+                SwitchData.Add(new switchDataClass { Name = "", Desc = "" });
+                SwitchData[i].Name = (i < 8 ? "Output " + (i + 1) : "Input " + (i - 7));
+                SwitchData[i].Desc = (i < 8 ? "Output switch " + (i + 1) : "Input switch " + (i - 7));
+            }
+
+            readSettings(); // Read device configuration from the ASCOM Profile store
+            tl.Enabled = traceState; //Now we can set the right setting
+
             connectedState = false; // Initialise connected to false
-            utilities = new Util(); //Initialise util object
-            astroUtilities = new AstroUtils(); // Initialise astro utilities object
-            //TODO: Implement your additional construction here
 
             tl.LogMessage("Switch", "Completed initialisation");
         }
@@ -134,7 +176,7 @@ namespace ASCOM.Vedrus
         {
             // consider only showing the setup dialog if not connected
             // or call a different dialog if connected
-            if (IsConnected)
+            if (IsConnectedWrapper(CONNECTIONCHECK_FORCED))
                 System.Windows.Forms.MessageBox.Show("Already connected, just press OK");
 
             using (SetupDialogForm F = new SetupDialogForm())
@@ -142,7 +184,12 @@ namespace ASCOM.Vedrus
                 var result = F.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
-                    WriteProfile(); // Persist device configuration values to the ASCOM Profile store
+                    Properties.Settings.Default.Save();
+                    //writeSettings(); // Persist device configuration values to the ASCOM Profile store - WAS ALREADY CALLED in SetupDialog_OK
+                }
+                else
+                {
+                    Properties.Settings.Default.Reload();
                 }
             }
         }
@@ -158,8 +205,37 @@ namespace ASCOM.Vedrus
 
         public string Action(string actionName, string actionParameters)
         {
-            LogMessage("", "Action {0}, parameters {1} not implemented", actionName, actionParameters);
-            throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
+            // Get device IP address
+            if (actionName == "IPAddress")
+            {
+                return ip_addr;
+            }
+            // Get cache settings
+            else if (actionName == "GetCacheParameter")
+            {
+                if (actionParameters == "CacheCheckConnection")
+                {
+                    return ConnectCheck_Cache_Timeout.ToString();
+                }
+                else if (actionParameters == "CacheSensorState")
+                {
+                    return OutputRead_Cache_Timeout.ToString();
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            // Get cache settings
+            else if (actionName == "GetTimeout")
+            {
+                return MyWebClient.Timeout.ToString();
+            }
+            else
+            {
+                LogMessage("", "Action {0}, parameters {1} not implemented", actionName, actionParameters);
+                throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
+            }
         }
 
         public void CommandBlind(string command, bool raw)
@@ -198,43 +274,55 @@ namespace ASCOM.Vedrus
             tl.Enabled = false;
             tl.Dispose();
             tl = null;
-            utilities.Dispose();
-            utilities = null;
-            astroUtilities.Dispose();
-            astroUtilities = null;
         }
 
         public bool Connected
         {
             get
             {
-                LogMessage("Connected", "Get {0}", IsConnected);
-                return IsConnected;
+                bool tempIsConnFlag = IsConnectedWrapper();
+                tl.LogMessage("Connected Get", tempIsConnFlag.ToString());
+                return tempIsConnFlag;
             }
             set
             {
-                tl.LogMessage("Connected", "Set {0}", value);
-                if (value == IsConnected)
+                tl.LogMessage("Connected Set", value.ToString());
+
+                if (value == IsConnectedWrapper(CONNECTIONCHECK_FORCED))
                     return;
 
                 if (value)
                 {
-                    connectedState = true;
-                    LogMessage("Connected Set", "Connecting to port {0}", comPort);
-                    // TODO connect to the device
+                    tl.LogMessage("Connected Set", "Connecting to IP9212...");
+
+                    Hardware.Connect();
+                    connectedState = Hardware.hardware_connected_flag;
+
+                    if (connectedState == false)
+                    {
+                        //if driver couldn't connect to ip9212 then raise an exception. 
+                        throw new ASCOM.DriverException("Couldn't connect to IP9212 control device on [" + ip_addr + "]", 0);
+                        //throw new System.InvalidOperationException("Couldn't connect to IP9212 control device on [" + ip_addr + "]");
+                    }
+
                 }
                 else
                 {
-                    connectedState = false;
-                    LogMessage("Connected Set", "Disconnecting from port {0}", comPort);
-                    // TODO disconnect from the device
+                    tl.LogMessage("Connected Set", "Disconnecting from IP9212...");
+                    Hardware.Disconnect();
+                    connectedState = Hardware.hardware_connected_flag;
+
+                    if (connectedState == true)
+                    {
+                        //if driver couldn't disconnect to ip9212 then raise an exception. 
+                        throw new ASCOM.DriverException("Couldn't disconnect to IP9212 control device on [" + ip_addr + "]");
+                    }
                 }
             }
         }
 
         public string Description
         {
-            // TODO customise this device description
             get
             {
                 tl.LogMessage("Description Get", driverDescription);
@@ -247,8 +335,8 @@ namespace ASCOM.Vedrus
             get
             {
                 Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                // TODO customise this driver description
-                string driverInfo = "Information about the driver itself. Version: " + String.Format(CultureInfo.InvariantCulture, "{0}.{1}", version.Major, version.Minor);
+                string driverInfo = driverDescription + ". Version: " + FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion +
+                    ", assembly version: " + String.Format(CultureInfo.InvariantCulture, "{0}.{1} build {2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
                 tl.LogMessage("DriverInfo Get", driverInfo);
                 return driverInfo;
             }
@@ -259,7 +347,8 @@ namespace ASCOM.Vedrus
             get
             {
                 Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                string driverVersion = String.Format(CultureInfo.InvariantCulture, "{0}.{1}", version.Major, version.Minor);
+                string driverVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion + " / " + String.Format(CultureInfo.InvariantCulture, "{0}.{1} build {2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
+                //driverVersion=version.ToString();
                 tl.LogMessage("DriverVersion Get", driverVersion);
                 return driverVersion;
             }
@@ -267,10 +356,9 @@ namespace ASCOM.Vedrus
 
         public short InterfaceVersion
         {
-            // set by the driver wizard
             get
             {
-                LogMessage("InterfaceVersion Get", "2");
+                tl.LogMessage("InterfaceVersion Get", "2");
                 return Convert.ToInt16("2");
             }
         }
@@ -279,17 +367,14 @@ namespace ASCOM.Vedrus
         {
             get
             {
-                string name = "Short driver name - please customise";
-                tl.LogMessage("Name Get", name);
-                return name;
+                tl.LogMessage("Name Get", driverDescriptionShort);
+                return driverDescriptionShort;
             }
         }
 
         #endregion
 
         #region ISwitchV2 Implementation
-
-        private short numSwitch = 0;
 
         /// <summary>
         /// The number of switches managed by this driver
@@ -299,7 +384,7 @@ namespace ASCOM.Vedrus
             get
             {
                 tl.LogMessage("MaxSwitch Get", numSwitch.ToString());
-                return this.numSwitch;
+                return numSwitch;
             }
         }
 
@@ -313,11 +398,10 @@ namespace ASCOM.Vedrus
         public string GetSwitchName(short id)
         {
             Validate("GetSwitchName", id);
-            tl.LogMessage("GetSwitchName", string.Format("GetSwitchName({0}) - not implemented", id));
-            throw new MethodNotImplementedException("GetSwitchName");
-            // or
-            //tl.LogMessage("GetSwitchName", string.Format("GetSwitchName({0}) - default Switch{0}", id));
-            //return "Switch" + id.ToString();
+
+            string tempStr = SwitchData[id].Name;
+            tl.LogMessage("GetSwitchName", string.Format("GetSwitchName({0}) = {1}", id, tempStr));
+            return tempStr;
         }
 
         /// <summary>
@@ -328,8 +412,8 @@ namespace ASCOM.Vedrus
         public void SetSwitchName(short id, string name)
         {
             Validate("SetSwitchName", id);
-            tl.LogMessage("SetSwitchName", string.Format("SetSwitchName({0}) = {1} - not implemented", id, name));
-            throw new MethodNotImplementedException("SetSwitchName");
+            tl.LogMessage("SetSwitchName", string.Format("SetSwitchName({0}): {1}", id, name));
+            SwitchData[id].Name = name;
         }
 
         /// <summary>
@@ -340,8 +424,21 @@ namespace ASCOM.Vedrus
         public string GetSwitchDescription(short id)
         {
             Validate("GetSwitchDescription", id);
-            tl.LogMessage("GetSwitchDescription", string.Format("GetSwitchDescription({0}) - not implemented", id));
-            throw new MethodNotImplementedException("GetSwitchDescription");
+
+            string tempStr = SwitchData[id].Desc;
+            tl.LogMessage("GetSwitchDescription", string.Format("GetSwitchDescription({0}) = {1}", id, tempStr));
+            return tempStr;
+        }
+        /// <summary>
+        /// Sets a switch description to a specified value. UNSPECIFIED BY ASCOM ISwitchV2!!!!!
+        /// </summary>
+        /// <param name="id">The number of the switch whose name is to be set</param>
+        /// <param name="desc">The description of the switch</param>
+        public void SetSwitchDescription(short id, string desc)
+        {
+            Validate("SetSwitchDescription", id);
+            tl.LogMessage("SetSwitchDescription", string.Format("SetSwitchDescription({0}): {1}", id, desc));
+            SwitchData[id].Desc = desc;
         }
 
         /// <summary>
@@ -357,12 +454,15 @@ namespace ASCOM.Vedrus
         public bool CanWrite(short id)
         {
             Validate("CanWrite", id);
-            // default behavour is to report true
-            tl.LogMessage("CanWrite", string.Format("CanWrite({0}) - default true", id));
-            return true;
-            // implementation should report the correct behaviour
-            //tl.LogMessage("CanWrite", string.Format("CanWrite({0}) - not implemented", id));
-            //throw new MethodNotImplementedException("CanWrite");
+
+            bool retFlag = false;
+            if (id <= 7)
+            {
+                retFlag = true;
+            }
+
+            tl.LogMessage("CanWrite", string.Format("CanWrite({0}) = {1}", id, retFlag));
+            return retFlag;
         }
 
         #region boolean switch members
@@ -378,8 +478,51 @@ namespace ASCOM.Vedrus
         public bool GetSwitch(short id)
         {
             Validate("GetSwitch", id);
-            tl.LogMessage("GetSwitch", string.Format("GetSwitch({0}) - not implemented", id));
-            throw new MethodNotImplementedException("GetSwitch");
+
+            bool? retVal = false;
+            if (id <= 7)
+            {
+                //read value for output switch
+                retVal = Hardware.getOutputSwitchStatus(id);
+
+                if (retVal == null)
+                {
+                    tl.LogMessage("GetSwitch", string.Format("ERROR! GetSwitch({0}) returns null value! ", id));
+                    Connected = false;
+                    retVal = false;
+                    //throw new ArgumentNullException("Switch [" + id + "] state cannot be read");
+                    //throw new ASCOM.InvalidValueException("Switch ["+id+"] state cannot be read");
+                }
+                else
+                {
+                    //invert for NO ports (0-3)
+                    if (id <= 3)
+                        retVal = !retVal;
+                }
+            }
+            else
+            {
+                //read value for input switch
+                retVal = Hardware.getInputSwitchStatus(id - 8);
+
+                if (retVal == null)
+                {
+                    tl.LogMessage("GetSwitch", string.Format("ERROR! GetSwitch({0}) returns null value! ", id));
+                    Connected = false;
+                    retVal = false;
+                    //throw new ArgumentNullException("Switch [" + id + "] state cannot be read");
+                    //throw new ASCOM.InvalidValueException("Switch ["+id+"] state cannot be read");
+                }
+                else
+                {
+                    //invert for NO ports (0-3)
+                    if (id <= 3)
+                        retVal = !retVal;
+                }
+            }
+
+            tl.LogMessage("GetSwitch", string.Format("GetSwitch({0}) = {1}", id, retVal));
+            return (bool)retVal;
         }
 
         /// <summary>
@@ -399,8 +542,11 @@ namespace ASCOM.Vedrus
                 tl.LogMessage("SetSwitch", str);
                 throw new MethodNotImplementedException(str);
             }
-            tl.LogMessage("SetSwitch", string.Format("SetSwitch({0}) = {1} - not implemented", id, state));
-            throw new MethodNotImplementedException("SetSwitch");
+
+            bool state_correct = (id <= 3 ? !state : state);
+
+            bool retVal = Hardware.setOutputStatus(id, state_correct);
+            tl.LogMessage("SetSwitch", string.Format("SetSwitch({0}): {1}", id, retVal));
         }
 
         #endregion
@@ -457,6 +603,7 @@ namespace ASCOM.Vedrus
             //throw new MethodNotImplementedException("SwitchStep");
         }
 
+        #region Analogue switches (not used)
         /// <summary>
         /// returns the analogue switch value for switch id
         /// boolean switches must throw a not implemented exception
@@ -467,7 +614,7 @@ namespace ASCOM.Vedrus
         {
             Validate("GetSwitchValue", id);
             tl.LogMessage("GetSwitchValue", string.Format("GetSwitchValue({0}) - not implemented", id));
-            throw new MethodNotImplementedException("GetSwitchValue");
+            throw new ASCOM.MethodNotImplementedException(string.Format("GetSwitchValue({0}) - not implemented", id));
         }
 
         /// <summary>
@@ -481,14 +628,16 @@ namespace ASCOM.Vedrus
         public void SetSwitchValue(short id, double value)
         {
             Validate("SetSwitchValue", id, value);
+
             if (!CanWrite(id))
             {
                 tl.LogMessage("SetSwitchValue", string.Format("SetSwitchValue({0}) - Cannot write", id));
                 throw new ASCOM.MethodNotImplementedException(string.Format("SetSwitchValue({0}) - Cannot write", id));
             }
             tl.LogMessage("SetSwitchValue", string.Format("SetSwitchValue({0}) = {1} - not implemented", id, value));
-            throw new MethodNotImplementedException("SetSwitchValue");
+            throw new ASCOM.MethodNotImplementedException(string.Format("SetSwitchValue({0}) = {1} - not implemented", id, value));
         }
+        #endregion
 
         #endregion
         #endregion
@@ -502,10 +651,17 @@ namespace ASCOM.Vedrus
         /// <param name="id">The id.</param>
         private void Validate(string message, short id)
         {
+            if (!IsConnectedWrapper())
+            {
+                throw new ASCOM.NotConnectedException("Device lost connection");
+                //Exception ex = new Exception("Not connected");
+                //throw ex;
+            }
+
             if (id < 0 || id >= numSwitch)
             {
                 tl.LogMessage(message, string.Format("Switch {0} not available, range is 0 to {1}", id, numSwitch - 1));
-                throw new InvalidValueException(message, id.ToString(), string.Format("0 to {0}", numSwitch - 1));
+                throw new ASCOM.InvalidValueException(message, id.ToString(), string.Format("0 to {0}", numSwitch - 1));
             }
         }
 
@@ -518,13 +674,14 @@ namespace ASCOM.Vedrus
         /// <param name="value">The value.</param>
         private void Validate(string message, short id, double value)
         {
+            tl.LogMessage(message, string.Format("Using analogue override for validate switch {0}, value {1}", id, value));
             Validate(message, id);
             var min = MinSwitchValue(id);
             var max = MaxSwitchValue(id);
             if (value < min || value > max)
             {
                 tl.LogMessage(message, string.Format("Value {1} for Switch {0} is out of the allowed range {2} to {3}", id, value, min, max));
-                throw new InvalidValueException(message, value.ToString(), string.Format("Switch({0}) range {1} to {2}", id, min, max));
+                throw new ASCOM.InvalidValueException(message, value.ToString(), string.Format("Switch({0}) range {1} to {2}", id, min, max));
             }
         }
 
@@ -629,13 +786,24 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// Returns true if there is a valid connection to the driver hardware
         /// </summary>
-        private bool IsConnected
+        private bool IsConnectedWrapper(bool forcedflag = CONNECTIONCHECK_CACHED)
         {
-            get
+            tl.LogMessage("IsConnectedWrapper", "Enter" + (forcedflag == CONNECTIONCHECK_FORCED ? " (forced)" : " (cached)"));
+
+            // Check that the driver hardware connection exists and is connected to the hardware
+            if (!connectedState)
             {
-                // TODO check that the driver hardware connection exists and is connected to the hardware
+                // if wasn't previously connected then return false
                 return connectedState;
             }
+            else
+            {
+                // if was previously connected then check in background is it still alive
+                connectedState = Hardware.IsConnected(forcedflag);
+            }
+
+            tl.LogMessage("IsConnectedWrapper", "Exit. Return status = " + connectedState.ToString());
+            return connectedState;
         }
 
         /// <summary>
@@ -644,36 +812,234 @@ namespace ASCOM.Vedrus
         /// <param name="message"></param>
         private void CheckConnected(string message)
         {
-            if (!IsConnected)
+            tl.LogMessage("CheckConnected", "[" + message + "]");
+            if (!IsConnectedWrapper())
             {
                 throw new ASCOM.NotConnectedException(message);
             }
         }
 
         /// <summary>
-        /// Read the device configuration from the ASCOM Profile store
+        /// Read settings from ASCOM profile storage
         /// </summary>
-        internal void ReadProfile()
+        internal void readSettings()
         {
-            using (Profile driverProfile = new Profile())
+            tl.LogMessage("readSettings", "Enter");
+            using (ASCOM.Utilities.Profile p = new Profile())
             {
-                driverProfile.DeviceType = "Switch";
-                tl.Enabled = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
-                comPort = driverProfile.GetValue(driverID, comPortProfileName, string.Empty, comPortDefault);
+                //System.Collections.ArrayList T = p.RegisteredDeviceTypes;
+                p.DeviceType = "Switch";
+
+                //General settings
+                try
+                {
+                    ip_addr = p.GetValue(driverID, ip_addr_profilename, string.Empty, ip_addr_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_addr_profilename, ip_addr_default);
+                    ip_addr = ip_addr_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_addr]: [" + e.Message + "]");
+                }
+                try
+                {
+                    ip_port = p.GetValue(driverID, ip_port_profilename, string.Empty, ip_port_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_port_profilename, ip_port_default);
+                    ip_port = ip_port_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_port]: [" + e.Message + "]");
+                }
+                try
+                {
+                    ip_login = p.GetValue(driverID, ip_login_profilename, string.Empty, ip_login_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_login_profilename, ip_login_default);
+                    ip_login = ip_login_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_login]: [" + e.Message + "]");
+                }
+
+                try
+                {
+                    ip_pass = p.GetValue(driverID, ip_pass_profilename, string.Empty, ip_pass_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_pass_profilename, ip_pass_default);
+                    ip_pass = ip_pass_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_pass]: [" + e.Message + "]");
+                }
+
+                //Set the same settings to hardware layer class
+                Hardware.ip_addr = ip_addr;
+                Hardware.ip_port = ip_port;
+                Hardware.ip_login = ip_login;
+                Hardware.ip_pass = ip_pass;
+
+                //Trace settings
+                try
+                {
+                    traceState = Convert.ToBoolean(p.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, traceStateProfileName, traceStateDefault.ToString());
+                    traceState = Convert.ToBoolean(traceStateDefault);
+                    tl.LogMessage("readSettings", "Input string [traceState] is not a boolean value [" + e.Message + "]");
+                }
+
+
+                //Language
+                try
+                {
+                    currentLang = p.GetValue(driverID, currentLocalizationProfileName, string.Empty, currentLangDefault);
+                }
+                catch (Exception e)
+                {
+                    currentLang = currentLangDefault;
+                    tl.LogMessage("readSettings", "Wrong input string for [currentLang]: [" + e.Message + "]");
+                }
+
+                //Cache settings
+                try
+                {
+                    ConnectCheck_Cache_Timeout = Convert.ToInt32(p.GetValue(driverID, ConnectCheck_Cache_Timeout_ProfileName, string.Empty, ConnectCheck_Cache_Timeout_def.ToString()));
+                }
+                catch (Exception e)
+                {
+                    ConnectCheck_Cache_Timeout = ConnectCheck_Cache_Timeout_def;
+                    tl.LogMessage("readSettings", "Wrong input string for [currentLang]: [" + e.Message + "]");
+                }
+                try
+                {
+                    OutputRead_Cache_Timeout = Convert.ToInt32(p.GetValue(driverID, ConnectCheck_Cache_Timeout_ProfileName, string.Empty, ConnectCheck_Cache_Timeout_def.ToString()));
+                }
+                catch (Exception e)
+                {
+                    ConnectCheck_Cache_Timeout = ConnectCheck_Cache_Timeout_def;
+                    tl.LogMessage("readSettings", "Wrong input string for [ConnectCheck_Cache_Timeout]: [" + e.Message + "]");
+                }
+                try
+                {
+                    OutputRead_Cache_Timeout = Convert.ToInt32(p.GetValue(driverID, OutputRead_Cache_Timeout_ProfileName, string.Empty, OutputRead_Cache_Timeout_def.ToString()));
+                }
+                catch (Exception e)
+                {
+                    OutputRead_Cache_Timeout = OutputRead_Cache_Timeout_def;
+                    tl.LogMessage("readSettings", "Wrong input string for [OutputRead_Cache_Timeout]: [" + e.Message + "]");
+                }
+                try
+                {
+                    InputRead_Cache_Timeout = Convert.ToInt32(p.GetValue(driverID, InputRead_Cache_Timeout_ProfileName, string.Empty, InputRead_Cache_Timeout_def.ToString()));
+                }
+                catch (Exception e)
+                {
+                    InputRead_Cache_Timeout = InputRead_Cache_Timeout_def;
+                    tl.LogMessage("readSettings", "Wrong input string for [InputRead_Cache_Timeout]: [" + e.Message + "]");
+                }
+                Web_switch_hardware_class.CACHE_CONNECTED_CHECK_MAX_INTERVAL = ConnectCheck_Cache_Timeout;
+                Web_switch_hardware_class.CACHE_OUTPUT_MAX_INTERVAL = OutputRead_Cache_Timeout;
+                Web_switch_hardware_class.CACHE_INPUT_MAX_INTERVAL = InputRead_Cache_Timeout;
+
+                //Switch data
+                for (int i = 0; i < numSwitch / 2; i++)
+                {
+                    //Output port name
+                    try
+                    {
+                        SwitchData[i].Name = p.GetValue(driverID, switch_name_profilename, "Out_" + (i + 1), "Output " + i);
+                    }
+                    catch (Exception e)
+                    {
+                        //p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "Out_" + (i + 1));
+                        SwitchData[i].Name = "Output " + i;
+                        tl.LogMessage("readSettings", "Wrong input string for [Output name " + i + "]: [" + e.Message + "]");
+                    }
+
+                    //Output port description
+                    try
+                    {
+                        SwitchData[i].Desc = p.GetValue(driverID, switch_description_profilename, "Out_" + (i + 1), "Output switch " + i);
+                    }
+                    catch (Exception e)
+                    {
+                        //p.WriteValue(driverID, switch_description_profilename, SwitchData[i].Desc, "Out_" + (i + 1));
+                        SwitchData[i].Desc = "Output switch " + i;
+                        tl.LogMessage("readSettings", "Wrong input string for [Output description " + i + "]: [" + e.Message + "]");
+                    }
+
+                    //Input port name
+                    try
+                    {
+                        SwitchData[i + 8].Name = p.GetValue(driverID, switch_name_profilename, "In_" + (i + 1), "Input " + i);
+                    }
+                    catch (Exception e)
+                    {
+                        //p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "In_" + (i + 1));
+                        SwitchData[i + 8].Name = "Input " + i;
+                        tl.LogMessage("readSettings", "Wrong input string for [Input name " + i + "]: [" + e.Message + "]");
+                    }
+                    //Input port description
+                    try
+                    {
+                        SwitchData[i + 8].Desc = p.GetValue(driverID, switch_description_profilename, "In_" + (i + 1), "Input switch " + i);
+                    }
+                    catch (Exception e)
+                    {
+                        //p.WriteValue(driverID, switch_description_profilename, SwitchData[i].Desc, "In_" + (i + 1));
+                        SwitchData[i + 8].Desc = "Input switch " + i;
+                        tl.LogMessage("readSettings", "Wrong input string for [Input description " + i + "]: [" + e.Message + "]");
+                    }
+                }
             }
+
+            tl.LogMessage("readSettings", "Exit");
         }
 
         /// <summary>
-        /// Write the device configuration to the  ASCOM  Profile store
+        /// Write settings to ASCOM profile storage
         /// </summary>
-        internal void WriteProfile()
+        internal static void writeSettings()
         {
-            using (Profile driverProfile = new Profile())
+            tl.LogMessage("writeSettings", "Enter");
+            using (Profile p = new Profile())
             {
-                driverProfile.DeviceType = "Switch";
-                driverProfile.WriteValue(driverID, traceStateProfileName, tl.Enabled.ToString());
-                driverProfile.WriteValue(driverID, comPortProfileName, comPort.ToString());
+                p.DeviceType = "Switch";
+
+                //General settings
+                p.WriteValue(driverID, ip_addr_profilename, ip_addr);
+                p.WriteValue(driverID, ip_port_profilename, ip_port);
+                p.WriteValue(driverID, ip_login_profilename, ip_login);
+                p.WriteValue(driverID, ip_pass_profilename, ip_pass);
+
+                //Trace value
+                p.WriteValue(driverID, traceStateProfileName, traceState.ToString());
+
+                //Language
+                p.WriteValue(driverID, currentLocalizationProfileName, currentLang);
+
+                //Cache settings
+                p.WriteValue(driverID, ConnectCheck_Cache_Timeout_ProfileName, ConnectCheck_Cache_Timeout.ToString());
+                p.WriteValue(driverID, OutputRead_Cache_Timeout_ProfileName, OutputRead_Cache_Timeout.ToString());
+                p.WriteValue(driverID, InputRead_Cache_Timeout_ProfileName, InputRead_Cache_Timeout.ToString());
+
+                //Switch data
+                for (int i = 0; i < numSwitch / 2; i++)
+                {
+                    //Output port
+                    p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "Out_" + (i + 1));
+                    p.WriteValue(driverID, switch_description_profilename, SwitchData[i].Desc, "Out_" + (i + 1));
+
+                    //Input port
+                    p.WriteValue(driverID, switch_name_profilename, SwitchData[i + 8].Name, "In_" + (i + 1));
+                    p.WriteValue(driverID, switch_description_profilename, SwitchData[i + 8].Desc, "In_" + (i + 1));
+                }
+
             }
+            tl.LogMessage("writeSettings", "Exit");
         }
 
         /// <summary>
