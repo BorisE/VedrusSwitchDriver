@@ -12,6 +12,7 @@ using ASCOM;
 using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
 
+
 namespace ASCOM.Vedrus
 {
 
@@ -26,7 +27,18 @@ namespace ASCOM.Vedrus
             return w;
         }
     }
+
+
+    // Получить данные
+    //      http://192.168.2.199/power/get/
+    //
+    // Протокол на изменение
+    //      post на http://192.168.2.199/relay.php
+    //      channel: boris_scope
+    //      state: 1 или 0
+    //      channel "boris_pc" - это самоубийство компу :)
     
+
     /// <summary>
     /// Class for working with Vedrus device
     /// </summary>
@@ -234,7 +246,10 @@ namespace ASCOM.Vedrus
             // new style
             siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
 
-            
+            // Vedrus style
+            // http://192.168.2.199/relay.php?channel=boris_scope
+
+
             //FOR DEBUGGING
             if (debugFlag)
             {
