@@ -293,7 +293,7 @@ namespace ASCOM.Vedrus
 
                 if (value)
                 {
-                    tl.LogMessage("Connected Set", "Connecting to IP9212...");
+                    tl.LogMessage("Connected Set", "Connecting to device...");
 
                     Hardware.Connect();
                     connectedState = Hardware.hardware_connected_flag;
@@ -301,21 +301,21 @@ namespace ASCOM.Vedrus
                     if (connectedState == false)
                     {
                         //if driver couldn't connect to ip9212 then raise an exception. 
-                        throw new ASCOM.DriverException("Couldn't connect to IP9212 control device on [" + ip_addr + "]", 0);
+                        throw new ASCOM.DriverException("Couldn't connect to control device on [" + ip_addr + "]", 0);
                         //throw new System.InvalidOperationException("Couldn't connect to IP9212 control device on [" + ip_addr + "]");
                     }
 
                 }
                 else
                 {
-                    tl.LogMessage("Connected Set", "Disconnecting from IP9212...");
+                    tl.LogMessage("Connected Set", "Disconnecting from device...");
                     Hardware.Disconnect();
                     connectedState = Hardware.hardware_connected_flag;
 
                     if (connectedState == true)
                     {
                         //if driver couldn't disconnect to ip9212 then raise an exception. 
-                        throw new ASCOM.DriverException("Couldn't disconnect to IP9212 control device on [" + ip_addr + "]");
+                        throw new ASCOM.DriverException("Couldn't disconnect to control device on [" + ip_addr + "]");
                     }
                 }
             }
@@ -449,16 +449,19 @@ namespace ASCOM.Vedrus
         /// <param name="id">The number of the switch whose write state is to be returned</param><returns>
         ///   <c>true</c> if the switch can be written to, otherwise <c>false</c>.
         /// </returns>
-        /// <exception cref="MethodNotImplementedException">If the method is not implemented</exception>
         /// <exception cref="InvalidValueException">If id is outside the range 0 to MaxSwitch - 1</exception>
         public bool CanWrite(short id)
         {
             Validate("CanWrite", id);
 
             bool retFlag = false;
-            if (id <= 7)
+            if (id <= this.MaxSwitch-1)
             {
                 retFlag = true;
+            }
+            else
+            {
+                throw new ASCOM.InvalidValueException("Device id (" + id + ") is out of range [0;" + (this.MaxSwitch - 1) + "]");
             }
 
             tl.LogMessage("CanWrite", string.Format("CanWrite({0}) = {1}", id, retFlag));
@@ -480,7 +483,7 @@ namespace ASCOM.Vedrus
             Validate("GetSwitch", id);
 
             bool? retVal = false;
-            if (id <= 7)
+            if (id >= 0 && id <= this.MaxSwitch - 1)
             {
                 //read value for output switch
                 retVal = Hardware.getOutputSwitchStatus(id);
@@ -493,32 +496,10 @@ namespace ASCOM.Vedrus
                     //throw new ArgumentNullException("Switch [" + id + "] state cannot be read");
                     //throw new ASCOM.InvalidValueException("Switch ["+id+"] state cannot be read");
                 }
-                else
-                {
-                    //invert for NO ports (0-3)
-                    if (id <= 3)
-                        retVal = !retVal;
-                }
             }
             else
             {
-                //read value for input switch
-                retVal = Hardware.getInputSwitchStatus(id - 8);
-
-                if (retVal == null)
-                {
-                    tl.LogMessage("GetSwitch", string.Format("ERROR! GetSwitch({0}) returns null value! ", id));
-                    Connected = false;
-                    retVal = false;
-                    //throw new ArgumentNullException("Switch [" + id + "] state cannot be read");
-                    //throw new ASCOM.InvalidValueException("Switch ["+id+"] state cannot be read");
-                }
-                else
-                {
-                    //invert for NO ports (0-3)
-                    if (id <= 3)
-                        retVal = !retVal;
-                }
+                throw new ASCOM.InvalidValueException("Device id ("+ id +") is out of range [0;" + (this.MaxSwitch - 1) + "]");
             }
 
             tl.LogMessage("GetSwitch", string.Format("GetSwitch({0}) = {1}", id, retVal));
@@ -536,6 +517,7 @@ namespace ASCOM.Vedrus
         public void SetSwitch(short id, bool state)
         {
             Validate("SetSwitch", id);
+
             if (!CanWrite(id))
             {
                 var str = string.Format("SetSwitch({0}) - Cannot Write", id);
@@ -543,9 +525,7 @@ namespace ASCOM.Vedrus
                 throw new MethodNotImplementedException(str);
             }
 
-            bool state_correct = (id <= 3 ? !state : state);
-
-            bool retVal = Hardware.setOutputStatus(id, state_correct);
+            bool retVal = Hardware.setOutputStatus(id, state);
             tl.LogMessage("SetSwitch", string.Format("SetSwitch({0}): {1}", id, retVal));
         }
 

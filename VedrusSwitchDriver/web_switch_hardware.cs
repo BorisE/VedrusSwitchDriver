@@ -30,19 +30,25 @@ namespace ASCOM.Vedrus
 
 
     // Получить данные
+    //      ПО ВСЕМ:
     //      http://192.168.2.199/power/get/
+    //      ответ: {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
     //
-    // Протокол на изменение
+    //      ПО КОНКРЕТНОМУ:
+    //      http://192.168.2.199/relay.php?channel=boris_scope
+    //      ответ: {"status":200,"state":0,"channel":"boris_scope"}
+    //  
+    // Протокол на изменение:
     //      post на http://192.168.2.199/relay.php
     //      channel: boris_scope
     //      state: 1 или 0
     //      channel "boris_pc" - это самоубийство компу :)
-    
 
-    /// <summary>
-    /// Class for working with Vedrus device
-    /// </summary>
-    public class Web_switch_hardware_class
+
+/// <summary>
+/// Class for working with Vedrus device
+/// </summary>
+public class Web_switch_hardware_class
     {
         internal bool debugFlag = false;
 
@@ -55,12 +61,7 @@ namespace ASCOM.Vedrus
 
         public string ip_addr, ip_port, ip_login, ip_pass;
 
-        /// <summary>
-        /// input sensors state
-        /// </summary>
-        private int[] input_state_arr = new int[1] { -1 };
-        // [0] - overall read status
-        // [1..8] - status of # input
+        public string channel1_name = "boris_scope" , channel2_name = "boris_pc";
 
         /// <summary>
         /// output sensors state
@@ -242,12 +243,11 @@ namespace ASCOM.Vedrus
             }
 
             string siteipURL;
-            siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
 
             // Vedrus style
-            // http://192.168.2.199/relay.php?channel=boris_scope
+            // http://192.168.2.199/power/get/
+            // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
 
 
             //FOR DEBUGGING
@@ -316,7 +316,9 @@ namespace ASCOM.Vedrus
             if (e.Result != null && e.Result.Length > 0)
             {
                 string downloadedData = Encoding.Default.GetString(e.Result);
-                if (downloadedData.IndexOf("P5") >= 0)
+                
+                //check for integrity
+                if (downloadedData.IndexOf(channel1_name) >= 0)
                 {
                     hardware_connected_flag = true;
                     tl.LogMessage("checkLink_DownloadCompleted", "ok");
@@ -368,10 +370,11 @@ namespace ASCOM.Vedrus
             }
 
             string siteipURL;
-            // old style
-            //siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
+
+            // Vedrus style
+            // http://192.168.2.199/power/get/
+            // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
 
             //FOR DEBUGGING
             if (debugFlag)
@@ -403,7 +406,7 @@ namespace ASCOM.Vedrus
 
                 tl.LogMessage("checkLink_forced", "Download str:" + s);
 
-                if (s.IndexOf("P5") >= 0)
+                if (s.IndexOf(channel1_name) >= 0)
                 {
                     hardware_connected_flag = true;
                     tl.LogMessage("checkLink_forced", "Downloaded data is ok");
@@ -443,61 +446,6 @@ namespace ASCOM.Vedrus
 
             tl.LogMessage("checkLink_forced", "Exit, ret value " + hardware_connected_flag.ToString());
             return hardware_connected_flag;
-        }
-
-
-        /// <summary>
-        /// Get input sensor status
-        /// </summary>
-        /// <returns>Returns bool TRUE or FALSE</returns> 
-        public bool? getInputSwitchStatus(int SwitchId, bool forcedflag = false)
-        {
-            tl.LogMessage("getInputSwitchStatus", "Enter (" + SwitchId + "), forced=" + forcedflag);
-
-            bool? curSwitchState = null;
-
-            if (forcedflag)
-            {
-                tl.LogMessage("getInputSwitchStatus", "Forced to read switch");
-                // curSwitchState = getInputStatusOne(SwitchId); //need to write new method (may be?)
-                input_state_arr = getInputStatus();
-            }
-            else
-            {
-                //Measure how much time have passed since last HARDWARE input reading
-                TimeSpan passed = DateTime.Now - lastInputReadCheck;
-                if (passed.TotalSeconds > CACHE_INPUT_MAX_INTERVAL)
-                {
-                    // read data
-                    tl.LogMessage("getInputSwitchStatus", String.Format("Cached expired, read hardware values [in cache was: {0}s]...", passed.TotalSeconds));
-
-                    input_state_arr = getInputStatus();
-
-                    // reset read cache moment
-                    lastInputReadCheck = DateTime.Now;
-                }
-                else
-                {
-                    // use previos value
-                    tl.LogMessage("getInputSwitchStatus", "Using cached values [in cache:" + passed.TotalSeconds + "s]");
-                }
-
-                
-                //////////
-                if (input_state_arr.Length < 9 || input_state_arr[0] < 1)
-                {
-                    curSwitchState = null;
-                }
-                else
-                {
-                    curSwitchState = (input_state_arr[SwitchId + 1] == 1);
-                }
-            }
-
-            tl.LogMessage("getInputSwitchStatus", "getInputSwitchStatus(" + SwitchId + "):" + curSwitchState);
-
-            tl.LogMessage("getInputSwitchStatus", "Exit");
-            return curSwitchState;
         }
 
         /// <summary>
@@ -544,118 +492,6 @@ namespace ASCOM.Vedrus
         }
 
 
-        /// <summary>
-        /// Get input sensor status
-        /// </summary>
-        /// <returns>Returns int array [0..8] with status flags of each input sensor. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
-        public int[] getInputStatus()
-        {
-            tl.LogMessage("getInputStatus", "Enter");
-
-            if (string.IsNullOrEmpty(ip_addr))
-            {
-                input_state_arr[0] = -1;
-                tl.LogMessage("getInputStatus", "ERROR (ip_addr wasn't set)!");
-                // report a problem with the port name
-                ASCOM_ERROR_MESSAGE = "getInputStatus(): no IP address was specified";
-                throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
-                //return input_state_arr;
-            }
-
-            string siteipURL;
-            siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
-
-            //FOR DEBUGGING
-            if (debugFlag)
-            {
-                siteipURL = "http://localhost/ip9212/getio.php";
-            }
-            tl.LogMessage("getInputStatus", "Download url:" + siteipURL);
-
-            // Send http query
-            tlsem.LogMessage("getInputStatus", "WaitOne");
-            VedrusSemaphore.WaitOne(); // lock working with IP9212
-            tlsem.LogMessage("getInputStatus", "WaitOne passed");
-
-            string s = "";
-            MyWebClient client = new MyWebClient();
-            try
-            {
-                Stream data = client.OpenRead(siteipURL);
-                StreamReader reader = new StreamReader(data);
-                s = reader.ReadToEnd();
-                data.Close();
-                reader.Close();
-
-                VedrusSemaphore.Release();//unlock ip9212 device for others
-                tlsem.LogMessage("getInputStatus", "Release");
-
-                tl.LogMessage("getInputStatus", "Download str:" + s);
-            }
-            catch (Exception e)
-            {
-                VedrusSemaphore.Release();//unlock ip9212 device for others
-                tlsem.LogMessage("getInputStatus", "Release on WebException");
-
-                input_state_arr[0] = -1;
-
-                tl.LogMessage("getInputStatus", "Error:" + e.Message);
-
-                ASCOM_ERROR_MESSAGE = "getInputStatus(): couldn't reach network server";
-                throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
-                //Trace("> IP9212_harware.getInputStatus(): exit by web error ");
-                //return input_state_arr;
-            }
-
-            // Parse data
-            try
-            {
-                // Parse result string
-                string[] stringSeparators = new string[] { "P5" };
-                string[] iprawdata_arr = s.Split(stringSeparators, StringSplitOptions.None);
-
-                Array.Resize(ref input_state_arr, iprawdata_arr.Length);
-
-                //Parse an array
-                for (var i = 1; i < iprawdata_arr.Length; i++)
-                {
-                    //Убираем запятую
-                    if (iprawdata_arr[i].Length > 3)
-                    {
-                        iprawdata_arr[i] = iprawdata_arr[i].Substring(0, 3);
-                    }
-                    //Trace(iprawdata_arr[i]);
-
-                    //Разбиваем на пары "номер порта"="значение"
-                    char[] delimiterChars = { '=' };
-                    string[] data_arr = iprawdata_arr[i].Split(delimiterChars);
-                    //st = st + " |" + i + ' ' + data_arr[1];
-                    if (data_arr.Length > 1)
-                    {
-                        input_state_arr[i] = Convert.ToInt16(data_arr[1]);
-                        Trace(input_state_arr[i]);
-                    }
-                    else
-                    {
-                        input_state_arr[i] = -1;
-                    }
-                }
-                input_state_arr[0] = 1;
-                tl.LogMessage("getInputStatus", "Data was read");
-            }
-            catch
-            {
-                tl.LogMessage("getInputStatus", "ERROR (Exception)!");
-                input_state_arr[0] = -1;
-                tl.LogMessage("getInputStatus", "Exit by parse error");
-                return input_state_arr;
-            }
-            tl.LogMessage("getInputStatus", "Exit");
-            return input_state_arr;
-        }
-
 
         /// <summary>
         /// Get output relay status
@@ -682,9 +518,13 @@ namespace ASCOM.Vedrus
 
             }
             string siteipURL;
-            siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getpower";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getpower";
+
+
+            // Vedrus style
+            // http://192.168.2.199/power/get/
+            // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
+
 
             //FOR DEBUGGING
             if (debugFlag)
@@ -729,8 +569,10 @@ namespace ASCOM.Vedrus
             }
 
             // Parse data
+            //{ "boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
             try
             {
+                aaa
                 string[] stringSeparators = new string[] { "P6" };
                 string[] iprawdata_arr = s.Split(stringSeparators, StringSplitOptions.None);
 
