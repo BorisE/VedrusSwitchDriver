@@ -50,20 +50,38 @@ namespace ASCOM.TestForm
     // ID for the About item on the system menu
     private int SYSMENU_ABOUT_ID = 0x1;
 
+
+        internal string DriverId="";
         private ASCOM.DriverAccess.Switch driver;
 
         public TestFrm()
         {
+
+            DriverId = Properties.Settings.Default.DriverId;
+            if (DriverId == "")
+            {
+                DriverId = "SwitchSim.Switch";
+                Properties.Settings.Default.DriverId = DriverId;
+                //Properties.Settings.Default.Save();
+            }
+
             InitializeComponent();
-            Properties.Settings.Default.DriverId = "ASCOM.IP9212_v2.Switch";
-            SetUIState_ConnectedDisconnected();
+            //SetUIState_ConnectedDisconnected();
 
         }
         
         private void Form1_Load(object sender, EventArgs e)
         {
             numericUpDown1.Value = timer1.Interval / 100;
-            driver = new ASCOM.DriverAccess.Switch(Properties.Settings.Default.DriverId);
+            try
+            {
+                driver = new ASCOM.DriverAccess.Switch(DriverId);
+            }
+            catch (Exception ex)
+            {
+                toolStripStatusLabel1.Text = "Couldn't connect to default device [" + DriverId + "] at startup";
+                txtLog.AppendText(toolStripStatusLabel1.Text + Environment.NewLine);
+            }
             SetUIState_ConnectedDisconnected();
         }
         
@@ -77,9 +95,23 @@ namespace ASCOM.TestForm
 
         private void buttonChoose_Click(object sender, EventArgs e)
         {
-            string st= ASCOM.DriverAccess.Switch.Choose(Properties.Settings.Default.DriverId);
-            Properties.Settings.Default.DriverId = st;
-            SetUIState_ConnectedDisconnected();
+            string st= ASCOM.DriverAccess.Switch.Choose(DriverId);
+
+            if (!string.IsNullOrEmpty(st))
+            {
+                Properties.Settings.Default.DriverId = st;
+                DriverId = st;
+                try
+                {
+                    driver = new ASCOM.DriverAccess.Switch(DriverId);
+                }
+                catch (Exception ex)
+                {
+                    toolStripStatusLabel1.Text = "Couldn't connect to choosed device [" + DriverId + "] at " + DateTime.Now;
+                    txtLog.AppendText(toolStripStatusLabel1.Text + Environment.NewLine);
+                }
+                SetUIState_ConnectedDisconnected();
+            }
         }
 
         private void buttonConnect_Click(object sender, EventArgs e)
@@ -97,7 +129,7 @@ namespace ASCOM.TestForm
                 catch
                 {
                     toolStripStatusLabel1.Text = "Couldn't connect to device" + " at " + DateTime.Now;
-                    txtLog.AppendText("Couldn't connect to device" + " at " + DateTime.Now);
+                    txtLog.AppendText(toolStripStatusLabel1.Text);
                     txtLog.AppendText(Environment.NewLine);
                     return;
                 }
@@ -112,7 +144,7 @@ namespace ASCOM.TestForm
         /// </summary>
         private void SetUIState_ConnectedDisconnected()
         {
-            buttonConnect.Enabled = !string.IsNullOrEmpty(Properties.Settings.Default.DriverId);
+            buttonConnect.Enabled = !string.IsNullOrEmpty(DriverId);
             buttonChoose.Enabled = !IsConnected;
             buttonConnect.Text = IsConnected ? "Disconnect" : "Connect";
 

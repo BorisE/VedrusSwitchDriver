@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 
+using System.Web.Script.Serialization;
+
 using ASCOM;
 using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
@@ -50,7 +52,7 @@ namespace ASCOM.Vedrus
 /// </summary>
 public class Web_switch_hardware_class
     {
-        internal bool debugFlag = false;
+        internal bool debugFlag = true;
 
         /// <summary>
         /// Used to test hardaware connection lost failure
@@ -253,7 +255,7 @@ public class Web_switch_hardware_class
             //FOR DEBUGGING
             if (debugFlag)
             {
-                siteipURL = "http://localhost/ip9212/getio.php";
+                siteipURL = "http://localhost/power/get.php";
             }
             Uri uri_siteipURL = new Uri(siteipURL);
             tl.LogMessage("CheckLink_async", "(thread" + Thread.CurrentThread.ManagedThreadId + ") download url:" + siteipURL);
@@ -379,7 +381,7 @@ public class Web_switch_hardware_class
             //FOR DEBUGGING
             if (debugFlag)
             {
-                siteipURL = "http://localhost/ip9212/getio.php";
+                siteipURL = "http://localhost/power/get.php";
             }
 
             Uri uri_siteipURL = new Uri(siteipURL);
@@ -529,7 +531,7 @@ public class Web_switch_hardware_class
             //FOR DEBUGGING
             if (debugFlag)
             {
-                siteipURL = "http://localhost/ip9212/getpower.php";
+                siteipURL = "http://localhost/power/get.php";
             }
             tl.LogMessage("getOutputStatus", "Download url:" + siteipURL);
 
@@ -572,7 +574,10 @@ public class Web_switch_hardware_class
             //{ "boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
             try
             {
-                aaa
+                Dictionary<string,UInt16> relays = new Dictionary<string, ushort>();
+                var jsSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                relays = jsSerializer.Deserialize<Dictionary<string, UInt16>>(s);
+                
                 string[] stringSeparators = new string[] { "P6" };
                 string[] iprawdata_arr = s.Split(stringSeparators, StringSplitOptions.None);
 

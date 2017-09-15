@@ -135,9 +135,8 @@ namespace ASCOM.Vedrus
         {
             // Clear grids
             dataGridOutputSwitch.Rows.Clear();
-            dataGridInputSwitch.Rows.Clear(); 
             // Populate both grids
-            for (int curRowIndex = 0; curRowIndex <= 7; curRowIndex++)
+            for (int curRowIndex = 0; curRowIndex <= Switch.numSwitch-1; curRowIndex++)
             {
                 //Output switches
                 if (1 != null)
@@ -146,17 +145,8 @@ namespace ASCOM.Vedrus
                     dataGridOutputSwitch.Rows.Add();
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchId"].Value = (curRowIndex + 1).ToString() + (curRowIndex < 4 ? " NC" : " NO"); ;
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchName"].Value = Switch.SwitchData[curRowIndex].Name;
+                    dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchROFlag"].Value = (Switch.SwitchData[curRowIndex].ROFlag ?? true);
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchDescription"].Value = Switch.SwitchData[curRowIndex].Desc;
-                }
-
-                //Input switches
-                if (1 != null)
-                {
-                    //Add sensor to grid
-                    dataGridInputSwitch.Rows.Add();
-                    dataGridInputSwitch.Rows[curRowIndex].Cells["InputSwitchId"].Value = (curRowIndex + 1).ToString() +(curRowIndex<4?" V":" R");
-                    dataGridInputSwitch.Rows[curRowIndex].Cells["InputSwitchName"].Value = Switch.SwitchData[curRowIndex+8].Name;
-                    dataGridInputSwitch.Rows[curRowIndex].Cells["InputSwitchDescription"].Value = Switch.SwitchData[curRowIndex+8].Desc;
                 }
             }        
         }
@@ -167,19 +157,21 @@ namespace ASCOM.Vedrus
         /// </summary>
         private void SaveGrid()
         {
-            for (int curRowIndex = 0; curRowIndex <= 7; curRowIndex++)
+            for (int curRowIndex = 0; curRowIndex < Switch.numSwitch ; curRowIndex++)
             {
-                if (1 != null)
+                //Output switches
+                Switch.SwitchData[curRowIndex].Name = dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchName"].Value.ToString();
+
+                bool roflag=true;
+                if (bool.TryParse(dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchROFlag"].Value.ToString(), out roflag))
+                { 
+                    Switch.SwitchData[curRowIndex].ROFlag= roflag;
+                }else
                 {
-                    //Output switches
-                    Switch.SwitchData[curRowIndex].Name = dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchName"].Value.ToString();
-                    Switch.SwitchData[curRowIndex].Desc = dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchDescription"].Value.ToString();
-
-                    //Input switches
-                    Switch.SwitchData[curRowIndex + 8].Name = dataGridInputSwitch.Rows[curRowIndex].Cells["InputSwitchName"].Value.ToString();
-                    Switch.SwitchData[curRowIndex + 8].Desc = dataGridInputSwitch.Rows[curRowIndex].Cells["InputSwitchDescription"].Value.ToString();
-
+                    Switch.SwitchData[curRowIndex].ROFlag = true;
                 }
+
+                Switch.SwitchData[curRowIndex].Desc = dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchDescription"].Value.ToString();
             }
         }
 

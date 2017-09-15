@@ -59,7 +59,13 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// ASCOM Switch Driver for Vedurs. Based on IP9212 v2 driver
         /// </summary>
-        internal static string driverID = "ASCOM.Vedrus1.Switch";
+        internal static string driverID = "ASCOM.Vedrus.Switch";
+
+        /// <summary>
+        /// Driver description that displays in the ASCOM Chooser.
+        /// </summary>
+        private static string driverDescriptionShort = "Vedrus Switch ver1";
+        private static string driverDescription = "ASCOM switch driver for Vedrus power controller based on ISwitchV2 interface. Written by Boris Emchenko http://astromania.info";
 
 
         /// <summary>
@@ -79,6 +85,9 @@ namespace ASCOM.Vedrus
         /// </summary>
         private static TraceLogger tl;
 
+        // NUMBER OF SWITCHES
+        internal static short numSwitch = 4;
+
         //Settings
         #region Settings variables        
 
@@ -91,11 +100,13 @@ namespace ASCOM.Vedrus
         internal static string ip_addr_default = "192.168.1.90", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "12345678";
 
         internal static string switch_name_profilename = "switchname";
+        internal static string switch_name_profilename_roflag = "switchROflag";
         internal static string switch_description_profilename = "switchdescription";
         // ARRAY WITH SWITCH NAMES AND DESCRIPTION
         public class switchDataClass
         {
             public string Name = "";
+            public bool? ROFlag = null;
             public string Desc = "";
             public bool? Val = null;
         }
@@ -119,15 +130,6 @@ namespace ASCOM.Vedrus
 
         #endregion Settings variables
 
-        /// <summary>
-        /// Driver description that displays in the ASCOM Chooser.
-        /// </summary>
-        private static string driverDescriptionShort = "Vedrus Switch ver1";
-        private static string driverDescription = "ASCOM switch driver for Vedrus power controller based on ISwitchV2 interface. Written by Boris Emchenko http://astromania.info";
-
-        // NUMBER OF SWITCHES
-        internal static short numSwitch = 2;
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vedrus"/> class.
@@ -147,8 +149,8 @@ namespace ASCOM.Vedrus
             for (int i = 0; i < numSwitch; i++)
             {
                 SwitchData.Add(new switchDataClass { Name = "", Desc = "" });
-                SwitchData[i].Name = (i < 8 ? "Output " + (i + 1) : "Input " + (i - 7));
-                SwitchData[i].Desc = (i < 8 ? "Output switch " + (i + 1) : "Input switch " + (i - 7));
+                SwitchData[i].Name = "Output " + (i + 1);
+                SwitchData[i].Desc = "Output switch " + (i + 1) ;
             }
 
             readSettings(); // Read device configuration from the ASCOM Profile store
@@ -198,8 +200,16 @@ namespace ASCOM.Vedrus
         {
             get
             {
-                tl.LogMessage("SupportedActions Get", "Returning empty arraylist");
-                return new ArrayList();
+                ArrayList list = new ArrayList();
+                list.Add("IPAddress");
+                list.Add("GetCacheParameter");
+                list.Add("CacheCheckConnection");
+                list.Add("CacheSensorState");
+                list.Add("GetTimeout");
+
+
+                tl.LogMessage("SupportedActions Get", "Returning arraylist");
+                return list;
             }
         }
 
@@ -234,7 +244,7 @@ namespace ASCOM.Vedrus
             else
             {
                 LogMessage("", "Action {0}, parameters {1} not implemented", actionName, actionParameters);
-                throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
+                throw new ASCOM.ActionNotImplementedException("Action [" + actionName + "] is not implemented by this driver");
             }
         }
 
@@ -706,7 +716,7 @@ namespace ASCOM.Vedrus
                 P.DeviceType = "Switch";
                 if (bRegister)
                 {
-                    P.Register(driverID, driverDescription);
+                    P.Register(driverID, driverDescriptionShort);
                 }
                 else
                 {
@@ -925,7 +935,7 @@ namespace ASCOM.Vedrus
                 Web_switch_hardware_class.CACHE_INPUT_MAX_INTERVAL = InputRead_Cache_Timeout;
 
                 //Switch data
-                for (int i = 0; i < numSwitch / 2; i++)
+                for (int i = 0; i < numSwitch; i++)
                 {
                     //Output port name
                     try
@@ -939,6 +949,18 @@ namespace ASCOM.Vedrus
                         tl.LogMessage("readSettings", "Wrong input string for [Output name " + i + "]: [" + e.Message + "]");
                     }
 
+                    //Output port ro flag
+                    try
+                    {
+                        SwitchData[i].ROFlag = Convert.ToBoolean(p.GetValue(driverID, switch_name_profilename_roflag, "Out_" + (i + 1), "Output " + i));
+                    }
+                    catch (Exception e)
+                    {
+                        //p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "Out_" + (i + 1));
+                        SwitchData[i].ROFlag = true;
+                        tl.LogMessage("readSettings", "Wrong input string for [Output RO " + i + "]: [" + e.Message + "]");
+                    }
+
                     //Output port description
                     try
                     {
@@ -950,32 +972,8 @@ namespace ASCOM.Vedrus
                         SwitchData[i].Desc = "Output switch " + i;
                         tl.LogMessage("readSettings", "Wrong input string for [Output description " + i + "]: [" + e.Message + "]");
                     }
-
-                    //Input port name
-                    try
-                    {
-                        SwitchData[i + 8].Name = p.GetValue(driverID, switch_name_profilename, "In_" + (i + 1), "Input " + i);
-                    }
-                    catch (Exception e)
-                    {
-                        //p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "In_" + (i + 1));
-                        SwitchData[i + 8].Name = "Input " + i;
-                        tl.LogMessage("readSettings", "Wrong input string for [Input name " + i + "]: [" + e.Message + "]");
-                    }
-                    //Input port description
-                    try
-                    {
-                        SwitchData[i + 8].Desc = p.GetValue(driverID, switch_description_profilename, "In_" + (i + 1), "Input switch " + i);
-                    }
-                    catch (Exception e)
-                    {
-                        //p.WriteValue(driverID, switch_description_profilename, SwitchData[i].Desc, "In_" + (i + 1));
-                        SwitchData[i + 8].Desc = "Input switch " + i;
-                        tl.LogMessage("readSettings", "Wrong input string for [Input description " + i + "]: [" + e.Message + "]");
-                    }
                 }
-            }
-
+            }    
             tl.LogMessage("readSettings", "Exit");
         }
 
@@ -1007,15 +1005,13 @@ namespace ASCOM.Vedrus
                 p.WriteValue(driverID, InputRead_Cache_Timeout_ProfileName, InputRead_Cache_Timeout.ToString());
 
                 //Switch data
-                for (int i = 0; i < numSwitch / 2; i++)
+                for (int i = 0; i < numSwitch ; i++)
                 {
                     //Output port
                     p.WriteValue(driverID, switch_name_profilename, SwitchData[i].Name, "Out_" + (i + 1));
+                    p.WriteValue(driverID, switch_name_profilename_roflag, SwitchData[i].ROFlag.ToString(), "Out_" + (i + 1));
                     p.WriteValue(driverID, switch_description_profilename, SwitchData[i].Desc, "Out_" + (i + 1));
 
-                    //Input port
-                    p.WriteValue(driverID, switch_name_profilename, SwitchData[i + 8].Name, "In_" + (i + 1));
-                    p.WriteValue(driverID, switch_description_profilename, SwitchData[i + 8].Desc, "In_" + (i + 1));
                 }
 
             }
