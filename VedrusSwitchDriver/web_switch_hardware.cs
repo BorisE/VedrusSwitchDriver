@@ -75,10 +75,6 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// output sensors state
         /// </summary>
-        private int[] output_state_arr__ = new int[1] { -1 };
-        // [0] - overall all output switch status
-        // [1..8] - status of # output
-
         public List<switchDataRawClass> SwitchDataRaw = new List<switchDataRawClass>();
 
 
@@ -374,7 +370,7 @@ namespace ASCOM.Vedrus
             tl.LogMessage("Switch_checkLink_forced", "Enter");
 
             //Just call getOutputStatus() method. It would check and also parse output data as a side bonus :)
-            getOutputStatus();
+            getOutputStatus(); 
 
             tl.LogMessage("Switch_checkLink_forced", "Exit. Returning status: " + hardware_connected_flag.ToString());
             return hardware_connected_flag;
@@ -395,7 +391,7 @@ namespace ASCOM.Vedrus
                 // read data
                 tl.LogMessage("getOutputSwitchStatus", String.Format("Cached expired, read hardware values [in cache was: {0}s]...", passed.TotalSeconds));
 
-                SwitchDataRaw = getOutputStatus();
+                getOutputStatus();
 
                 // reset read cache moment
                 lastOutputReadCheck = DateTime.Now;
@@ -429,21 +425,19 @@ namespace ASCOM.Vedrus
         /// Get output relay status
         /// </summary>
         /// <returns>Returns int array [0..8] with status flags of each realya status. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
-        public List<switchDataRawClass> getOutputStatus()
+        public bool getOutputStatus()
         {
             tl.LogMessage("getOutputStatus", "Enter");
 
             // get the ip9212 settings from the profile
             //readSettings();
 
-            //return data
-            List<switchDataRawClass> tempSwitchData = new List<switchDataRawClass>();
-
             if (string.IsNullOrEmpty(ip_addr))
             {
                 tl.LogMessage("getOutputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
                 ASCOM_ERROR_MESSAGE = "getOutputStatus(): no IP address was specified";
+                SwitchDataRaw.Clear();
                 throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
                 //return input_state_arr;
             }
@@ -495,6 +489,7 @@ namespace ASCOM.Vedrus
 
                 //Bonus: checkconnection
                 hardware_connected_flag = false;
+                SwitchDataRaw.Clear();
 
                 tl.LogMessage("getOutputStatus", "Error:" + e.Message);
                 ASCOM_ERROR_MESSAGE = "getInputStatus(): Couldn't reach network server";
@@ -502,7 +497,7 @@ namespace ASCOM.Vedrus
                 Trace("> IP9212_harware.getOutputStatus(): exit by web error");
                 tl.LogMessage("getOutputStatus", "Exit by web error");
 
-                return tempSwitchData; //empty list for now
+                return false; //error
             }
 
             // Parse data
@@ -515,10 +510,12 @@ namespace ASCOM.Vedrus
                 relaysRead = jsSerializer.Deserialize<Dictionary<string, Int16>>(s);
 
                 //Read into LIST with SWITCH values
-                tempSwitchData.Clear();
+                List<switchDataRawClass> tempSwitchData = new List<switchDataRawClass>();
+
+                SwitchDataRaw.Clear();
                 foreach (KeyValuePair<string, Int16> rel in relaysRead)
                 {
-                    tempSwitchData.Add(new switchDataRawClass() { Name = rel.Key, Val = rel.Value });
+                    SwitchDataRaw.Add(new switchDataRawClass() { Name = rel.Key, Val = rel.Value });
                 }
 
                 lastOutputReadCheck = DateTime.Now; //mark cache was renewed
@@ -526,12 +523,18 @@ namespace ASCOM.Vedrus
             }
             catch (Exception ex)
             {
+                SwitchDataRaw.Clear();
                 tl.LogMessage("getOutputStatus", "ERROR parsing data (Exception: " + ex.Message + ")!");
                 tl.LogMessage("getOutputStatus", "exit by parse error");
+                return false; //error
             }
-            return tempSwitchData;
+            return true;
         }
 
+        public bool setOutputStatus(int PortNumber, bool bPortValue)
+        {
+            return false;
+        }
 
         /// <summary>
         /// Chage output relay state
@@ -539,17 +542,13 @@ namespace ASCOM.Vedrus
         /// <param name="PortNumber">Relay port number, int [1..9]</param>
         /// <param name="bPortValue">Port value flase = 0, true = 1</param>
         /// <returns>Returns true in case of success</returns> 
-        public bool setOutputStatus(int PortNumber, bool bPortValue)
+        public bool setOutputStatus(string PortName, bool bPortValue)
         {
-            tl.LogMessage("setOutputStatus", "Enter (" + PortNumber + "," + bPortValue + ")");
+            tl.LogMessage("setOutputStatus", "Enter (" + PortName + "," + bPortValue + ")");
 
             //convert port value to int
             int intPortValue = (bPortValue ? 1 : 0);
-            //Hardware Port Number
-            int HardPortNumber = PortNumber + 1;
 
-            // get the ip9212 settings from the profile
-            //readSettings();
 
             //return data
             bool ret = false;
@@ -562,17 +561,23 @@ namespace ASCOM.Vedrus
                 throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
                 //return ret;
             }
-            string siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=setpower+P6" + HardPortNumber + "=" + intPortValue;
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=setpower+P6" + HardPortNumber + "=" + intPortValue; 
 
-            //FOR DEBUGGING
+            string siteipURL;
             if (debugFlag)
             {
-                siteipURL = "http://localhost/ip9212/set.php?cmd=setpower+P6" + HardPortNumber + "=" + intPortValue;
+                //FOR DEBUGGING
+                siteipURL = "http://localhost/power/set.php?channel=" + PortName + "&state=" + intPortValue;
+            }
+            else
+            {
+                // Vedrus style
+                // http://192.168.2.199/power/get/
+                // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
+                siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
             }
             tl.LogMessage("setOutputStatus", "Download url:" + siteipURL);
-            
+
+           
             // Send http query
             tlsem.LogMessage("setOutputStatus", "WaitOne"); 
             VedrusSemaphore.WaitOne(); // lock working with IP9212
@@ -602,7 +607,7 @@ namespace ASCOM.Vedrus
                 ret = false;
 
                 tl.LogMessage("setOutputStatus", "Error:" + e.Message);
-                ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortNumber + "," + intPortValue + "): Couldn't reach network server";
+                ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortName + "," + intPortValue + "): Couldn't reach network server";
                 //throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
                 tl.LogMessage("setOutputStatus", "Exit by web error");
                 return ret;

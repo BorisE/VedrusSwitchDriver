@@ -206,7 +206,7 @@ namespace ASCOM.Vedrus
                 list.Add("CacheCheckConnection");
                 list.Add("CacheSensorState");
                 list.Add("GetTimeout");
-
+                list.Add("GetSwitchROFlag");
 
                 tl.LogMessage("SupportedActions Get", "Returning arraylist");
                 return list;
@@ -215,6 +215,9 @@ namespace ASCOM.Vedrus
 
         public string Action(string actionName, string actionParameters)
         {
+
+            tl.LogMessage("Action", actionName + "(" + actionParameters+ ")");
+
             // Get device IP address
             if (actionName == "IPAddress")
             {
@@ -240,6 +243,14 @@ namespace ASCOM.Vedrus
             else if (actionName == "GetTimeout")
             {
                 return MyWebClient.Timeout.ToString();
+            }
+            // Get cache settings
+            else if (actionName == "GetSwitchROFlag")
+            {
+                string roflag= SwitchData[Convert.ToInt16(actionParameters)].ROFlag.ToString();
+
+                tl.LogMessage("Action return", actionName + "(" + actionParameters + "): " + roflag);
+                return roflag;
             }
             else
             {
@@ -281,9 +292,9 @@ namespace ASCOM.Vedrus
         public void Dispose()
         {
             // Clean up the tracelogger and util objects
-            tl.Enabled = false;
-            tl.Dispose();
-            tl = null;
+            //tl.Enabled = false;
+            //tl.Dispose();
+            //tl = null;
         }
 
         public bool Connected

@@ -175,13 +175,19 @@ namespace ASCOM.TestForm
                 txtCacheSensorData.Text = driver.Action("GetCacheParameter", "CacheSensorState");
                 txtTimeout.Text = driver.Action("GetTimeout", "");
 
+                string stro = "";
+
                 for (int i = 1; i <= driver.MaxSwitch; i++)
                 {
                     try
                     {
-                        ((TextBox)this.Controls.Find("txtOutput" + i, true)[0]).Text = driver.GetSwitch((short)(i - 1)).ToString();
+                        //((TextBox)this.Controls.Find("txtOutput" + i, true)[0]).Text = driver.GetSwitch((short)(i - 1)).ToString();
+
                         ((TextBox)this.Controls.Find("txtOutName" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();
                         ((TextBox)this.Controls.Find("txtOutDesc" + i, true)[0]).Text = driver.GetSwitchDescription((short)(i - 1)).ToString();
+
+                        stro = driver.Action("GetSwitchROFlag", (i - 1).ToString()).ToString();
+                        ((TextBox)this.Controls.Find("txtOutput" + i, true)[0]).Text = stro;
 
                         ((CheckBox)this.Controls.Find("chkOut" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();
                         ((CheckBox)this.Controls.Find("chkOut" + i, true)[0]).Checked = driver.GetSwitch((short)(i - 1));
@@ -215,7 +221,7 @@ namespace ASCOM.TestForm
                         txtLog.AppendText(Environment.NewLine);
                         txtLog.AppendText("Unknown exception" + Environment.NewLine + ex.ToString());
                         txtLog.AppendText(Environment.NewLine);
-                        MessageBox.Show("Unknown exception" + Environment.NewLine + ex.ToString());
+                        MessageBox.Show("Unknown exception [" + i + "]["+stro+"]" + Environment.NewLine + ex.ToString());
                     }
                 }
             }
