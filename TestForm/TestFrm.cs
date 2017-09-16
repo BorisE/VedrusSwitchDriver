@@ -104,6 +104,7 @@ namespace ASCOM.TestForm
                 try
                 {
                     driver = new ASCOM.DriverAccess.Switch(DriverId);
+                    Properties.Settings.Default.Save();
                 }
                 catch (Exception ex)
                 {
@@ -174,7 +175,7 @@ namespace ASCOM.TestForm
                 txtCacheSensorData.Text = driver.Action("GetCacheParameter", "CacheSensorState");
                 txtTimeout.Text = driver.Action("GetTimeout", "");
 
-                for (int i = 1; i <= driver.MaxSwitch / 2; i++)
+                for (int i = 1; i <= driver.MaxSwitch; i++)
                 {
                     try
                     {
@@ -182,20 +183,10 @@ namespace ASCOM.TestForm
                         ((TextBox)this.Controls.Find("txtOutName" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();
                         ((TextBox)this.Controls.Find("txtOutDesc" + i, true)[0]).Text = driver.GetSwitchDescription((short)(i - 1)).ToString();
 
-                        ((TextBox)this.Controls.Find("txtInput" + i, true)[0]).Text = driver.GetSwitch((short)(i + 7)).ToString();
-                        ((TextBox)this.Controls.Find("txtInName" + i, true)[0]).Text = driver.GetSwitchName((short)(i + 7)).ToString();
-                        ((TextBox)this.Controls.Find("txtInDesc" + i, true)[0]).Text = driver.GetSwitchDescription((short)(i + 7)).ToString();
-
-
                         ((CheckBox)this.Controls.Find("chkOut" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();
                         ((CheckBox)this.Controls.Find("chkOut" + i, true)[0]).Checked = driver.GetSwitch((short)(i - 1));
 
                         toolTip1.SetToolTip(((CheckBox)this.Controls.Find("chkOut" + i, true)[0]), driver.GetSwitchDescription((short)(i - 1)));
-
-                        ((CheckBox)this.Controls.Find("chkIn" + i, true)[0]).Text = driver.GetSwitchName((short)(i + 7)).ToString();
-                        ((CheckBox)this.Controls.Find("chkIn" + i, true)[0]).Checked = driver.GetSwitch((short)(i + 7));
-
-                        toolTip1.SetToolTip(((CheckBox)this.Controls.Find("chkIn" + i, true)[0]), driver.GetSwitchDescription((short)(i + 7)));
 
                     }
                     catch (ASCOM.NotConnectedException ex)

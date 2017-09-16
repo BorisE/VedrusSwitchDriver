@@ -789,7 +789,7 @@ namespace ASCOM.Vedrus
             else
             {
                 // if was previously connected then check in background is it still alive
-                connectedState = Hardware.IsConnected(forcedflag);
+                connectedState = Hardware.IsHardareReachable(forcedflag);
             }
 
             tl.LogMessage("IsConnectedWrapper", "Exit. Return status = " + connectedState.ToString());
@@ -932,7 +932,6 @@ namespace ASCOM.Vedrus
                 }
                 Web_switch_hardware_class.CACHE_CONNECTED_CHECK_MAX_INTERVAL = ConnectCheck_Cache_Timeout;
                 Web_switch_hardware_class.CACHE_OUTPUT_MAX_INTERVAL = OutputRead_Cache_Timeout;
-                Web_switch_hardware_class.CACHE_INPUT_MAX_INTERVAL = InputRead_Cache_Timeout;
 
                 //Switch data
                 for (int i = 0; i < numSwitch; i++)

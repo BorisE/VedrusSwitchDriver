@@ -85,7 +85,6 @@ namespace ASCOM.Vedrus
                 Switch.OutputRead_Cache_Timeout = Switch.InputRead_Cache_Timeout; //set output=input read
                 Web_switch_hardware_class.CACHE_CONNECTED_CHECK_MAX_INTERVAL = Switch.ConnectCheck_Cache_Timeout;
                 Web_switch_hardware_class.CACHE_OUTPUT_MAX_INTERVAL = Switch.OutputRead_Cache_Timeout;
-                Web_switch_hardware_class.CACHE_INPUT_MAX_INTERVAL = Switch.InputRead_Cache_Timeout;
 
                 MyWebClient.Timeout = Convert.ToInt32(txtNetworkTimeout.Text) * 1000;
 

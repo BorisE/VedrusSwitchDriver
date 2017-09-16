@@ -50,49 +50,49 @@
             this.txtInName8 = new System.Windows.Forms.TextBox();
             this.txtOutName8 = new System.Windows.Forms.TextBox();
             this.txtOutDesc8 = new System.Windows.Forms.TextBox();
-            this.txtOutput8 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO8 = new System.Windows.Forms.TextBox();
             this.txtInput7 = new System.Windows.Forms.TextBox();
             this.txtInDesc7 = new System.Windows.Forms.TextBox();
             this.txtInName7 = new System.Windows.Forms.TextBox();
             this.txtOutName7 = new System.Windows.Forms.TextBox();
             this.txtOutDesc7 = new System.Windows.Forms.TextBox();
-            this.txtOutput7 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO7 = new System.Windows.Forms.TextBox();
             this.txtInput6 = new System.Windows.Forms.TextBox();
             this.txtInDesc6 = new System.Windows.Forms.TextBox();
             this.txtInName6 = new System.Windows.Forms.TextBox();
             this.txtOutName6 = new System.Windows.Forms.TextBox();
             this.txtOutDesc6 = new System.Windows.Forms.TextBox();
-            this.txtOutput6 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO6 = new System.Windows.Forms.TextBox();
             this.txtInput5 = new System.Windows.Forms.TextBox();
             this.txtInDesc5 = new System.Windows.Forms.TextBox();
             this.txtInName5 = new System.Windows.Forms.TextBox();
             this.txtOutName5 = new System.Windows.Forms.TextBox();
             this.txtOutDesc5 = new System.Windows.Forms.TextBox();
-            this.txtOutput5 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO5 = new System.Windows.Forms.TextBox();
             this.txtInput4 = new System.Windows.Forms.TextBox();
             this.txtInDesc4 = new System.Windows.Forms.TextBox();
             this.txtInName4 = new System.Windows.Forms.TextBox();
             this.txtOutName4 = new System.Windows.Forms.TextBox();
             this.txtOutDesc4 = new System.Windows.Forms.TextBox();
-            this.txtOutput4 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO4 = new System.Windows.Forms.TextBox();
             this.txtInput3 = new System.Windows.Forms.TextBox();
             this.txtInDesc3 = new System.Windows.Forms.TextBox();
             this.txtInName3 = new System.Windows.Forms.TextBox();
             this.txtOutName3 = new System.Windows.Forms.TextBox();
             this.txtOutDesc3 = new System.Windows.Forms.TextBox();
-            this.txtOutput3 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO3 = new System.Windows.Forms.TextBox();
             this.txtInput2 = new System.Windows.Forms.TextBox();
             this.txtInDesc2 = new System.Windows.Forms.TextBox();
             this.txtInName2 = new System.Windows.Forms.TextBox();
             this.txtOutName2 = new System.Windows.Forms.TextBox();
             this.txtOutDesc2 = new System.Windows.Forms.TextBox();
-            this.txtOutput2 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO2 = new System.Windows.Forms.TextBox();
             this.txtInput1 = new System.Windows.Forms.TextBox();
             this.txtInDesc1 = new System.Windows.Forms.TextBox();
             this.txtInName1 = new System.Windows.Forms.TextBox();
             this.txtOutName1 = new System.Windows.Forms.TextBox();
             this.txtOutDesc1 = new System.Windows.Forms.TextBox();
-            this.txtOutput1 = new System.Windows.Forms.TextBox();
+            this.txtOutputRO1 = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
@@ -101,12 +101,14 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
             this.label19 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.txtIPaddr = new System.Windows.Forms.TextBox();
             this.txtCacheSensorData = new System.Windows.Forms.TextBox();
+            this.txtTimeout = new System.Windows.Forms.TextBox();
             this.txtCacheConnection = new System.Windows.Forms.TextBox();
             this.txtNumberOfSwitches = new System.Windows.Forms.TextBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -134,8 +136,9 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.backgroundWorker_connect = new System.ComponentModel.BackgroundWorker();
             this.txtLog = new System.Windows.Forms.RichTextBox();
-            this.txtTimeout = new System.Windows.Forms.TextBox();
-            this.label18 = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.label21 = new System.Windows.Forms.Label();
+            this.label22 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
@@ -216,6 +219,9 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.label22);
+            this.groupBox2.Controls.Add(this.label21);
+            this.groupBox2.Controls.Add(this.label20);
             this.groupBox2.Controls.Add(this.label16);
             this.groupBox2.Controls.Add(this.label14);
             this.groupBox2.Controls.Add(this.txtInput8);
@@ -224,49 +230,49 @@
             this.groupBox2.Controls.Add(this.txtInName8);
             this.groupBox2.Controls.Add(this.txtOutName8);
             this.groupBox2.Controls.Add(this.txtOutDesc8);
-            this.groupBox2.Controls.Add(this.txtOutput8);
+            this.groupBox2.Controls.Add(this.txtOutputRO8);
             this.groupBox2.Controls.Add(this.txtInput7);
             this.groupBox2.Controls.Add(this.txtInDesc7);
             this.groupBox2.Controls.Add(this.txtInName7);
             this.groupBox2.Controls.Add(this.txtOutName7);
             this.groupBox2.Controls.Add(this.txtOutDesc7);
-            this.groupBox2.Controls.Add(this.txtOutput7);
+            this.groupBox2.Controls.Add(this.txtOutputRO7);
             this.groupBox2.Controls.Add(this.txtInput6);
             this.groupBox2.Controls.Add(this.txtInDesc6);
             this.groupBox2.Controls.Add(this.txtInName6);
             this.groupBox2.Controls.Add(this.txtOutName6);
             this.groupBox2.Controls.Add(this.txtOutDesc6);
-            this.groupBox2.Controls.Add(this.txtOutput6);
+            this.groupBox2.Controls.Add(this.txtOutputRO6);
             this.groupBox2.Controls.Add(this.txtInput5);
             this.groupBox2.Controls.Add(this.txtInDesc5);
             this.groupBox2.Controls.Add(this.txtInName5);
             this.groupBox2.Controls.Add(this.txtOutName5);
             this.groupBox2.Controls.Add(this.txtOutDesc5);
-            this.groupBox2.Controls.Add(this.txtOutput5);
+            this.groupBox2.Controls.Add(this.txtOutputRO5);
             this.groupBox2.Controls.Add(this.txtInput4);
             this.groupBox2.Controls.Add(this.txtInDesc4);
             this.groupBox2.Controls.Add(this.txtInName4);
             this.groupBox2.Controls.Add(this.txtOutName4);
             this.groupBox2.Controls.Add(this.txtOutDesc4);
-            this.groupBox2.Controls.Add(this.txtOutput4);
+            this.groupBox2.Controls.Add(this.txtOutputRO4);
             this.groupBox2.Controls.Add(this.txtInput3);
             this.groupBox2.Controls.Add(this.txtInDesc3);
             this.groupBox2.Controls.Add(this.txtInName3);
             this.groupBox2.Controls.Add(this.txtOutName3);
             this.groupBox2.Controls.Add(this.txtOutDesc3);
-            this.groupBox2.Controls.Add(this.txtOutput3);
+            this.groupBox2.Controls.Add(this.txtOutputRO3);
             this.groupBox2.Controls.Add(this.txtInput2);
             this.groupBox2.Controls.Add(this.txtInDesc2);
             this.groupBox2.Controls.Add(this.txtInName2);
             this.groupBox2.Controls.Add(this.txtOutName2);
             this.groupBox2.Controls.Add(this.txtOutDesc2);
-            this.groupBox2.Controls.Add(this.txtOutput2);
+            this.groupBox2.Controls.Add(this.txtOutputRO2);
             this.groupBox2.Controls.Add(this.txtInput1);
             this.groupBox2.Controls.Add(this.txtInDesc1);
             this.groupBox2.Controls.Add(this.txtInName1);
             this.groupBox2.Controls.Add(this.txtOutName1);
             this.groupBox2.Controls.Add(this.txtOutDesc1);
-            this.groupBox2.Controls.Add(this.txtOutput1);
+            this.groupBox2.Controls.Add(this.txtOutputRO1);
             this.groupBox2.Controls.Add(this.label13);
             this.groupBox2.Controls.Add(this.label12);
             this.groupBox2.Controls.Add(this.label11);
@@ -332,8 +338,8 @@
             // 
             // txtOutput8
             // 
-            resources.ApplyResources(this.txtOutput8, "txtOutput8");
-            this.txtOutput8.Name = "txtOutput8";
+            resources.ApplyResources(this.txtOutputRO8, "txtOutput8");
+            this.txtOutputRO8.Name = "txtOutput8";
             // 
             // txtInput7
             // 
@@ -362,8 +368,8 @@
             // 
             // txtOutput7
             // 
-            resources.ApplyResources(this.txtOutput7, "txtOutput7");
-            this.txtOutput7.Name = "txtOutput7";
+            resources.ApplyResources(this.txtOutputRO7, "txtOutput7");
+            this.txtOutputRO7.Name = "txtOutput7";
             // 
             // txtInput6
             // 
@@ -392,8 +398,8 @@
             // 
             // txtOutput6
             // 
-            resources.ApplyResources(this.txtOutput6, "txtOutput6");
-            this.txtOutput6.Name = "txtOutput6";
+            resources.ApplyResources(this.txtOutputRO6, "txtOutput6");
+            this.txtOutputRO6.Name = "txtOutput6";
             // 
             // txtInput5
             // 
@@ -422,8 +428,8 @@
             // 
             // txtOutput5
             // 
-            resources.ApplyResources(this.txtOutput5, "txtOutput5");
-            this.txtOutput5.Name = "txtOutput5";
+            resources.ApplyResources(this.txtOutputRO5, "txtOutput5");
+            this.txtOutputRO5.Name = "txtOutput5";
             // 
             // txtInput4
             // 
@@ -452,8 +458,8 @@
             // 
             // txtOutput4
             // 
-            resources.ApplyResources(this.txtOutput4, "txtOutput4");
-            this.txtOutput4.Name = "txtOutput4";
+            resources.ApplyResources(this.txtOutputRO4, "txtOutput4");
+            this.txtOutputRO4.Name = "txtOutput4";
             // 
             // txtInput3
             // 
@@ -482,8 +488,8 @@
             // 
             // txtOutput3
             // 
-            resources.ApplyResources(this.txtOutput3, "txtOutput3");
-            this.txtOutput3.Name = "txtOutput3";
+            resources.ApplyResources(this.txtOutputRO3, "txtOutput3");
+            this.txtOutputRO3.Name = "txtOutput3";
             // 
             // txtInput2
             // 
@@ -512,8 +518,8 @@
             // 
             // txtOutput2
             // 
-            resources.ApplyResources(this.txtOutput2, "txtOutput2");
-            this.txtOutput2.Name = "txtOutput2";
+            resources.ApplyResources(this.txtOutputRO2, "txtOutput2");
+            this.txtOutputRO2.Name = "txtOutput2";
             // 
             // txtInput1
             // 
@@ -542,8 +548,8 @@
             // 
             // txtOutput1
             // 
-            resources.ApplyResources(this.txtOutput1, "txtOutput1");
-            this.txtOutput1.Name = "txtOutput1";
+            resources.ApplyResources(this.txtOutputRO1, "txtOutput1");
+            this.txtOutputRO1.Name = "txtOutput1";
             // 
             // label13
             // 
@@ -585,6 +591,11 @@
             resources.ApplyResources(this.label6, "label6");
             this.label6.Name = "label6";
             // 
+            // label18
+            // 
+            resources.ApplyResources(this.label18, "label18");
+            this.label18.Name = "label18";
+            // 
             // label17
             // 
             resources.ApplyResources(this.label17, "label17");
@@ -614,6 +625,11 @@
             // 
             resources.ApplyResources(this.txtCacheSensorData, "txtCacheSensorData");
             this.txtCacheSensorData.Name = "txtCacheSensorData";
+            // 
+            // txtTimeout
+            // 
+            resources.ApplyResources(this.txtTimeout, "txtTimeout");
+            this.txtTimeout.Name = "txtTimeout";
             // 
             // txtCacheConnection
             // 
@@ -766,6 +782,7 @@
             // 
             // statusStrip1
             // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1});
             resources.ApplyResources(this.statusStrip1, "statusStrip1");
@@ -802,15 +819,20 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.TextChanged += new System.EventHandler(this.txtLog_TextChanged);
             // 
-            // txtTimeout
+            // label20
             // 
-            resources.ApplyResources(this.txtTimeout, "txtTimeout");
-            this.txtTimeout.Name = "txtTimeout";
+            resources.ApplyResources(this.label20, "label20");
+            this.label20.Name = "label20";
             // 
-            // label18
+            // label21
             // 
-            resources.ApplyResources(this.label18, "label18");
-            this.label18.Name = "label18";
+            resources.ApplyResources(this.label21, "label21");
+            this.label21.Name = "label21";
+            // 
+            // label22
+            // 
+            resources.ApplyResources(this.label22, "label22");
+            this.label22.Name = "label22";
             // 
             // TestFrm
             // 
@@ -862,21 +884,21 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtNumberOfSwitches;
         private System.Windows.Forms.TextBox txtInput8;
-        private System.Windows.Forms.TextBox txtOutput8;
+        private System.Windows.Forms.TextBox txtOutputRO8;
         private System.Windows.Forms.TextBox txtInput7;
-        private System.Windows.Forms.TextBox txtOutput7;
+        private System.Windows.Forms.TextBox txtOutputRO7;
         private System.Windows.Forms.TextBox txtInput6;
-        private System.Windows.Forms.TextBox txtOutput6;
+        private System.Windows.Forms.TextBox txtOutputRO6;
         private System.Windows.Forms.TextBox txtInput5;
-        private System.Windows.Forms.TextBox txtOutput5;
+        private System.Windows.Forms.TextBox txtOutputRO5;
         private System.Windows.Forms.TextBox txtInput4;
-        private System.Windows.Forms.TextBox txtOutput4;
+        private System.Windows.Forms.TextBox txtOutputRO4;
         private System.Windows.Forms.TextBox txtInput3;
-        private System.Windows.Forms.TextBox txtOutput3;
+        private System.Windows.Forms.TextBox txtOutputRO3;
         private System.Windows.Forms.TextBox txtInput2;
-        private System.Windows.Forms.TextBox txtOutput2;
+        private System.Windows.Forms.TextBox txtOutputRO2;
         private System.Windows.Forms.TextBox txtInput1;
-        private System.Windows.Forms.TextBox txtOutput1;
+        private System.Windows.Forms.TextBox txtOutputRO1;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label11;
@@ -952,6 +974,9 @@
         private System.Windows.Forms.TextBox txtCacheConnection;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.TextBox txtTimeout;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.Label label20;
     }
 }
 
