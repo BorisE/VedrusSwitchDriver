@@ -19,25 +19,6 @@ using ASCOM.DeviceInterface;
 namespace ASCOM.Vedrus
 {
 
-    public class MyWebClient : WebClient
-    {
-        static public int Timeout = 5 * 1000;
-
-        protected override WebRequest GetWebRequest(Uri uri)
-        {
-            WebRequest w = base.GetWebRequest(uri);
-            w.Timeout = Timeout;
-            return w;
-        }
-    }
-
-    public class switchDataRawClass
-    {
-        public string Name = "";
-        public Int16 Val = -1;
-    }
-
-
     // Получить данные
     //      ПО ВСЕМ:
     //      http://192.168.2.199/power/get/
@@ -59,7 +40,7 @@ namespace ASCOM.Vedrus
     /// </summary>
     public class Web_switch_hardware_class
     {
-        internal bool debugFlag = true;
+        internal bool debugFlag = false;
 
         /// <summary>
         /// Used to test hardaware connection lost failure
@@ -73,9 +54,9 @@ namespace ASCOM.Vedrus
         public string channel1_name = "boris_scope" , channel2_name = "boris_pc";
 
         /// <summary>
-        /// output sensors state
+        /// Temp output sensors state
         /// </summary>
-        public List<switchDataRawClass> SwitchDataRaw = new List<switchDataRawClass>();
+        public List<switchDataRawClass> SWITCH_DATA_LIST = new List<switchDataRawClass>();
 
 
         /// <summary>
@@ -147,7 +128,7 @@ namespace ASCOM.Vedrus
             }
 
             // check (forced) if there is connection with hardware
-            if (IsHardareReachable(true))
+            if (IsHardwareReachable(true))
             {
                 tl.LogMessage("Switch_Connect", "Connected");
                 return;
@@ -192,7 +173,7 @@ namespace ASCOM.Vedrus
         /// </summary>
         /// <param name="forcedflag">[bool] if function need to force noncached checking of device availability</param>
         /// <returns>true is available, false otherwise</returns>
-        public bool IsHardareReachable(bool forcedflag = false)
+        public bool IsHardwareReachable(bool forcedflag = false)
         {
             tl.LogMessage("Switch_IsHardareReachable", "Enter (forced flag=" + forcedflag.ToString()+")");
 
@@ -276,7 +257,7 @@ namespace ASCOM.Vedrus
                 VedrusSemaphore.WaitOne(); // lock working with IP9212
                 tlsem.LogMessage("checkLink_async", "WaitOne passed (thread" + Thread.CurrentThread.ManagedThreadId + ")");
 
-                client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(checkLink_DownloadCompleted);
+                client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(___checkLink_DownloadCompleted);
                 client.DownloadDataAsync(uri_siteipURL);
 
                 tl.LogMessage("CheckLink_async", "(thread" + Thread.CurrentThread.ManagedThreadId + ") http request was sent");
@@ -301,7 +282,7 @@ namespace ASCOM.Vedrus
         /// Event hadler for async download (checkLink_async)
         /// Not used in this build
         /// </summary>
-        internal void checkLink_DownloadCompleted(Object sender, DownloadDataCompletedEventArgs e)
+        internal void ___checkLink_DownloadCompleted(Object sender, DownloadDataCompletedEventArgs e)
         {
             try
             {
@@ -388,12 +369,11 @@ namespace ASCOM.Vedrus
             TimeSpan passed = DateTime.Now - lastOutputReadCheck;
             if (forcedflag || passed.TotalSeconds > CACHE_OUTPUT_MAX_INTERVAL)
             {
-                // read data
+                // Read output data for ALL SWITCHES
                 tl.LogMessage("getOutputSwitchStatus", String.Format("Cached expired, read hardware values [in cache was: {0}s]...", passed.TotalSeconds));
-
                 getOutputStatus();
 
-                // reset read cache moment
+                // Reset read cache moment
                 lastOutputReadCheck = DateTime.Now;
             }
             else
@@ -404,13 +384,13 @@ namespace ASCOM.Vedrus
 
             ///////////////
             bool? curSwitchState = null;
-            if (SwitchDataRaw.Count() < (SwitchId+1))
+            if (SWITCH_DATA_LIST.Count() < (SwitchId+1))
             {
                 curSwitchState = null;
             }
             else
             {
-                curSwitchState = (SwitchDataRaw[SwitchId].Val == 1);
+                curSwitchState = (SWITCH_DATA_LIST[SwitchId].Val == 1);
             }
             
             tl.LogMessage("getOutputSwitchStatus", "getOutputSwitchStatus(" + SwitchId + "):" + curSwitchState);
@@ -437,7 +417,7 @@ namespace ASCOM.Vedrus
                 tl.LogMessage("getOutputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
                 ASCOM_ERROR_MESSAGE = "getOutputStatus(): no IP address was specified";
-                SwitchDataRaw.Clear();
+                SWITCH_DATA_LIST.Clear();
                 throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
                 //return input_state_arr;
             }
@@ -489,7 +469,7 @@ namespace ASCOM.Vedrus
 
                 //Bonus: checkconnection
                 hardware_connected_flag = false;
-                SwitchDataRaw.Clear();
+                SWITCH_DATA_LIST.Clear();
 
                 tl.LogMessage("getOutputStatus", "Error:" + e.Message);
                 ASCOM_ERROR_MESSAGE = "getInputStatus(): Couldn't reach network server";
@@ -512,10 +492,10 @@ namespace ASCOM.Vedrus
                 //Read into LIST with SWITCH values
                 List<switchDataRawClass> tempSwitchData = new List<switchDataRawClass>();
 
-                SwitchDataRaw.Clear();
+                SWITCH_DATA_LIST.Clear();
                 foreach (KeyValuePair<string, Int16> rel in relaysRead)
                 {
-                    SwitchDataRaw.Add(new switchDataRawClass() { Name = rel.Key, Val = rel.Value });
+                    SWITCH_DATA_LIST.Add(new switchDataRawClass() { Name = rel.Key, Val = rel.Value });
                 }
 
                 lastOutputReadCheck = DateTime.Now; //mark cache was renewed
@@ -523,7 +503,7 @@ namespace ASCOM.Vedrus
             }
             catch (Exception ex)
             {
-                SwitchDataRaw.Clear();
+                SWITCH_DATA_LIST.Clear();
                 tl.LogMessage("getOutputStatus", "ERROR parsing data (Exception: " + ex.Message + ")!");
                 tl.LogMessage("getOutputStatus", "exit by parse error");
                 return false; //error
@@ -531,9 +511,14 @@ namespace ASCOM.Vedrus
             return true;
         }
 
-        public bool setOutputStatus(int PortNumber, bool bPortValue)
+        public bool setOutputStatus(int PortIndex, bool bPortValue)
         {
-            return false;
+            tl.LogMessage("setOutputStatus", "Enter (" + PortIndex + "," + bPortValue + ")");
+
+            //get channel name
+            string ChannelName = Switch.SwitchData[PortIndex].Name;
+
+            return setOutputStatus(ChannelName, bPortValue);
         }
 
         /// <summary>
@@ -562,22 +547,24 @@ namespace ASCOM.Vedrus
                 //return ret;
             }
 
+            string paramString = "channel=" + PortName + "&state=" + intPortValue;
             string siteipURL;
             if (debugFlag)
             {
                 //FOR DEBUGGING
-                siteipURL = "http://localhost/power/set.php?channel=" + PortName + "&state=" + intPortValue;
+                siteipURL = "http://localhost/power/set.php";
             }
             else
             {
                 // Vedrus style
-                // http://192.168.2.199/power/get/
+                // http://192.168.2.199/relay.php
                 // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
-                siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
+                siteipURL = "http://" + ip_addr + ":" + ip_port + "/relay.php";
             }
             tl.LogMessage("setOutputStatus", "Download url:" + siteipURL);
+            tl.LogMessage("setOutputStatus", "Param String:" + paramString);
 
-           
+            
             // Send http query
             tlsem.LogMessage("setOutputStatus", "WaitOne"); 
             VedrusSemaphore.WaitOne(); // lock working with IP9212
@@ -586,11 +573,7 @@ namespace ASCOM.Vedrus
             MyWebClient client = new MyWebClient();
             try
             {
-                Stream data = client.OpenRead(siteipURL);
-                StreamReader reader = new StreamReader(data);
-                s = reader.ReadToEnd();
-                data.Close();
-                reader.Close();
+                s = client.UploadPOST(siteipURL, paramString);
 
                 VedrusSemaphore.Release();//unlock ip9212 device for others
                 tlsem.LogMessage("setOutputStatus", "Release");
@@ -689,4 +672,43 @@ namespace ASCOM.Vedrus
         }
 
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public class switchDataRawClass
+    {
+        public string Name = "";
+        public Int16 Val = -1;
+    }
+
+
+
+    /// <summary>
+    /// Override default WebClient calss to include TimeOut parameter
+    /// </summary>
+    public class MyWebClient : WebClient
+    {
+        static public int Timeout = 5 * 1000;
+
+        protected override WebRequest GetWebRequest(Uri uri)
+        {
+            WebRequest w = base.GetWebRequest(uri);
+            w.Timeout = Timeout;
+            return w;
+        }
+
+        public string UploadPOST(string SiteUri, string ParamString)
+        {
+            //string URI = "http://www.myurl.com/post.php";
+            //string myParameters = "param1=value1&param2=value2&param3=value3";
+
+            this.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+            string HtmlResult = this.UploadString(SiteUri, ParamString);
+
+            return HtmlResult;
+        }
+
+
+    }
+
 }

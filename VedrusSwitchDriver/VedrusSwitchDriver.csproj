@@ -98,9 +98,7 @@
     <Compile Include="SetupDialogForm.designer.cs">
       <DependentUpon>SetupDialogForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="web_switch_hardware.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="web_switch_hardware.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -114,6 +112,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ChangeLog.txt" />
     <None Include="Resources\logo_512_blue.png" />
     <None Include="Resources\logo_256_blue.png" />
     <None Include="Resources\logo_48_blue.png" />

@@ -13,6 +13,7 @@
 // -----------	---	-----	-------------------------------------------------------
 // 15-06-2015	XXX 2.0.10	Last IP9212 release
 // 02-09-2017	XXX 1.0.0	Deep alpha1
+// 01-10-2017	XXX 1.0.1	First Beta
 // --------------------------------------------------------------------------------
 //
 
@@ -102,7 +103,11 @@ namespace ASCOM.Vedrus
         internal static string switch_name_profilename = "switchname";
         internal static string switch_name_profilename_roflag = "switchROflag";
         internal static string switch_description_profilename = "switchdescription";
+
+
+        //*******************************************************************************
         // ARRAY WITH SWITCH NAMES AND DESCRIPTION
+        //*******************************************************************************
         public class switchDataClass
         {
             public string Name = "";
@@ -110,7 +115,9 @@ namespace ASCOM.Vedrus
             public string Desc = "";
             public bool? Val = null;
         }
+        //Main Switch Data Class
         public static List<switchDataClass> SwitchData = new List<switchDataClass>();
+        //******************************************************************************
 
         public static string currentLang;
         internal static string currentLocalizationProfileName = "Current language";
@@ -800,7 +807,7 @@ namespace ASCOM.Vedrus
             else
             {
                 // if was previously connected then check in background is it still alive
-                connectedState = Hardware.IsHardareReachable(forcedflag);
+                connectedState = Hardware.IsHardwareReachable(forcedflag);
             }
 
             tl.LogMessage("IsConnectedWrapper", "Exit. Return status = " + connectedState.ToString());

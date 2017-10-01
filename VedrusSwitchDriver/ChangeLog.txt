@@ -1,46 +1,17 @@
-﻿ASCOM Aviosys IP9212 Switch driver
-Written by Boris Emchenko
+﻿ASCOM Vedrus Power Server Switch driver
+Written 2017 by Boris Emchenko
 http://astromania.info
 
 Change log
 
-15.06.2015 2.0.10
-- network timeout setting
-- strange (for me) behaiviour, when ASCOM calls Dispose method for dirver when cancel button is pressed in setupdialog. fixed
+ 1.0.1.0 [01.10.2017]
+- first working beta
 
-31.05.2015 2.0.9
-- bug for NC output (0..3) state set 
-- emulataion of connection problems
-- new cusom actions (GetCacheParameter)
+1.0.0.1 [02.09.2017]
+- deep alpha
 
-23.05.2015 2.0.8
-- settings savings bug corrected
-- custom timeout on web rrquests
-- exception handling corrected
+*2.0.10 [15-06-2015]		
+Last Aviosys IP9212 driver release
 
-16.05.2015 2.0.7
-- device authorization procedures were changed
-- minor changes
-
-26.11.2014 2.0.6 
-- first release version
-
-26.11.2014 2.0.5 (beta 5) 
-- improved caching (reset cache after writing)
-
-26.11.2014 2.0.4 (beta 4) 
-- added localization for setup dialog (russian language)
-
-26.11.2014 2.0.3 (beta 3) 
-- introduced caching for input and output switches reading
-- improved caching for isconnected calls
-- tested semaphores under heavy loads
-- tested on real IP device
-- tons of bugs curreted
-
-25.11.2014 2.0.2 (beta 2) 
-- switch to classical Thread instead of async/await (got strange non async results due to SyncContext)
-- all values for Output Switch (both NC and NO) is now transformed into universal on/off states
-
-24.11.2014 2.0.1 (beta 1) 
-- at once first working release! (buggy but nevertheless)
+To setup:
+- enter channel names in setup dialog
