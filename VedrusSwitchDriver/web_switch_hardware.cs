@@ -19,21 +19,23 @@ using ASCOM.DeviceInterface;
 namespace ASCOM.Vedrus
 {
 
-    // Получить данные
-    //      ПО ВСЕМ:
-    //      http://192.168.2.199/power/get/
-    //      ответ: {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
-    //
-    //      ПО КОНКРЕТНОМУ:
-    //      http://192.168.2.199/relay.php?channel=boris_scope
-    //      ответ: {"status":200,"state":0,"channel":"boris_scope"}
-    //  
-    // Протокол на изменение:
-    //      post на http://192.168.2.199/relay.php
-    //      channel: boris_scope
-    //      state: 1 или 0
-    //      channel "boris_pc" - это самоубийство компу :)
 
+    /*
+    Get status:
+    sUrl = "http://192.168.2.99/REST/relay/";
+    Method GET
+    Respone: {"success":true,"data":{"107":{"name":"\u0420\u0435\u043b\u0435 1","state":0},"201":{"name":"\u0420\u0435\u043b\u0435 2","state":0},"198":{"name":"\u0411\u043e\u0440\u0438\u0441-\u041a\u043e\u043c\u043f","state":1},"199":{"name":"\u0411\u043e\u0440\u0438\u0441-\u0410\u0441\u0442\u0440\u043e\u0433\u0440\u0430\u0444","state":0}}}
+
+    Set:
+    sUrl = "http://192.168.2.99/REST/relay/";
+    sRequest = "gpio=199&state=1";
+    Method POST
+    Response: {"success":true,"data":{"gpio":199,"state":1}}
+
+    GPIO:
+    198 - Comp
+    199 - Astrograph
+    */
 
     /// <summary>
     /// Class for working with Vedrus device
@@ -431,10 +433,13 @@ namespace ASCOM.Vedrus
             }
             else
             {
-            // Vedrus style
-                // http://192.168.2.199/power/get/
-                // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
-                siteipURL = "http://" + ip_addr + ":" + ip_port + "/power/get/";
+                // Vedrus Stone style
+                // Get status:
+                // sUrl = "http://192.168.2.99/REST/relay/";
+                // Method GET
+                // Respone: { "success":true,"data":{ "107":{ "name":"\u0420\u0435\u043b\u0435 1","state":0},"201":{ "name":"\u0420\u0435\u043b\u0435 2","state":0},"198":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u041a\u043e\u043c\u043f","state":1},"199":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u0410\u0441\u0442\u0440\u043e\u0433\u0440\u0430\u0444","state":0} } }
+
+                siteipURL = "http://" + ip_addr + ":" + ip_port + "/REST/relay/";
             }
             tl.LogMessage("getOutputStatus", "Download url:" + siteipURL);
 
@@ -481,7 +486,7 @@ namespace ASCOM.Vedrus
             }
 
             // Parse data
-            //{ "boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
+            // Respone: { "success":true,"data":{ "107":{ "name":"\u0420\u0435\u043b\u0435 1","state":0},"201":{ "name":"\u0420\u0435\u043b\u0435 2","state":0},"198":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u041a\u043e\u043c\u043f","state":1},"199":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u0410\u0441\u0442\u0440\u043e\u0433\u0440\u0430\u0444","state":0} } }
             try
             {
                 //Deserialize into dictionary

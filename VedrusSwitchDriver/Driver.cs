@@ -53,19 +53,19 @@ namespace ASCOM.Vedrus
     /// <summary>
     /// ASCOM Switch Driver for Vedrus.
     /// </summary>
-    [Guid("e28696fa-8e61-4377-b21c-ab9b71bc7207")]
+    [Guid("FB503ED4-5E4A-41DD-9036-66D5B71CE04E")]
     [ClassInterface(ClassInterfaceType.None)]
     public class Switch : ISwitchV2
     {
         /// <summary>
         /// ASCOM Switch Driver for Vedurs. Based on IP9212 v2 driver
         /// </summary>
-        internal static string driverID = "ASCOM.Vedrus.Switch";
+        internal static string driverID = "ASCOM.Vedrus.Switch2";
 
         /// <summary>
         /// Driver description that displays in the ASCOM Chooser.
         /// </summary>
-        private static string driverDescriptionShort = "Vedrus Switch ver1";
+        private static string driverDescriptionShort = "Vedrus Switch ver2";
         private static string driverDescription = "ASCOM switch driver for Vedrus power controller based on ISwitchV2 interface. Written by Boris Emchenko http://astromania.info";
 
 

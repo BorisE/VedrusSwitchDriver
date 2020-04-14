@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 //
 // TODO - Add your authorship information here
-[assembly: AssemblyTitle("ASCOM.Vedrus.Switch")]
-[assembly: AssemblyDescription("ASCOM Switch driver for Vedrus")]
+[assembly: AssemblyTitle("ASCOM.Vedrus.Switch2")]
+[assembly: AssemblyDescription("ASCOM Switch driver for Vedrus v2")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Astromania.info")]
-[assembly: AssemblyProduct("ASCOM Switch driver for Vedrus")]
-[assembly: AssemblyCopyright("Copyright © 2017 Boris Emchenko")]
+[assembly: AssemblyProduct("ASCOM Switch driver for Vedrus v2")]
+[assembly: AssemblyCopyright("Copyright © 2020 Boris Emchenko")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("30852890-42f0-44ce-86e9-726986cf0d15")]
+[assembly: Guid("A0466225-8044-4CA7-9CFD-9F64682F5E57")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 //
 // TODO - Set your driver's version here
 [assembly: AssemblyVersion("6.2.*")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("2.0.0.0")]

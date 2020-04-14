@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ipaddr" Type="System.String" Scope="User">
-      <Value Profile="(Default)">192.168.2.199</Value>
+      <Value Profile="(Default)">192.168.2.99</Value>
     </Setting>
     <Setting Name="ipport" Type="System.String" Scope="User">
       <Value Profile="(Default)">80</Value>
