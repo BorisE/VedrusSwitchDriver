@@ -40,9 +40,9 @@ using System.Reflection;
 namespace ASCOM.Vedrus
 {
     //
-    // Your driver's DeviceID is ASCOM.Vedrus.Switch
+    // Your driver's DeviceID is ASCOM.Vedrus.Switch2
     //
-    // The Guid attribute sets the CLSID for ASCOM.Vedrus.Switch
+    // The Guid attribute sets the CLSID for ASCOM.Vedrus.Switch2
     // The ClassInterface/None addribute prevents an empty interface called
     // _Vedrus from being created and used as the [default] interface
     //
@@ -54,6 +54,7 @@ namespace ASCOM.Vedrus
     /// ASCOM Switch Driver for Vedrus.
     /// </summary>
     [Guid("FB503ED4-5E4A-41DD-9036-66D5B71CE04E")]
+    [ProgId("ASCOM.Vedrus.Switch2")]
     [ClassInterface(ClassInterfaceType.None)]
     public class Switch : ISwitchV2
     {
@@ -165,14 +166,13 @@ namespace ASCOM.Vedrus
 
             connectedState = false; // Initialise connected to false
 
-            tl.LogMessage("Switch", "Completed initialisation");
+            tl.LogMessage("Switch", "Completed initialization");
         }
 
 
         //
         // PUBLIC COM INTERFACE ISwitchV2 IMPLEMENTATION
         //
-
         #region Common properties and methods.
 
         /// <summary>
@@ -403,7 +403,6 @@ namespace ASCOM.Vedrus
         #endregion
 
         #region ISwitchV2 Implementation
-
         /// <summary>
         /// The number of switches managed by this driver
         /// </summary>
