@@ -65,7 +65,11 @@ namespace ASCOM.Vedrus
     /// </summary>
     public class Web_switch_hardware_class
     {
-        internal bool debugFlag = true;
+        #if (DEBUG)
+                internal bool debugFlag = true;
+        #else
+                internal bool debugFlag = false;
+        #endif
 
         /// <summary>
         /// Used to test hardaware connection lost failure

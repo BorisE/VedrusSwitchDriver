@@ -129,9 +129,9 @@ namespace ASCOM.Vedrus
         internal static int InputRead_Cache_Timeout_def = 5;
 
         // NUMBER OF SWITCHES
-        internal static short numSwitch = 5;
+        internal static short numSwitch = 4;
         internal static string NumberOfSwitch_ProfileName = "NumberOfSwitch";
-        internal static short NumberOfSwitch_def = 5;
+        internal static short NumberOfSwitch_def = 4;
 
         
 

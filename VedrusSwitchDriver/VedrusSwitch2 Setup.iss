@@ -5,14 +5,14 @@
 [Setup]
 AppID={{5dfb599a-6c5a-457e-b360-98820821c072}
 AppName=ASCOM VedrusSwitch2 Switch Driver
-AppVerName=ASCOM VedrusSwitch2 Switch Driver 2.0.0
-AppVersion=2.0.0
+AppVerName=ASCOM VedrusSwitch2 Switch Driver 2.0.1
+AppVersion=2.0.1
 AppPublisher=Boris Emchenko <e_b_s@inbox.ru>
 AppPublisherURL=mailto:e_b_s@inbox.ru
 AppSupportURL=http://tech.groups.yahoo.com/group/ASCOM-Talk/
 AppUpdatesURL=http://ascom-standards.org/
 VersionInfoVersion=1.0.0
-MinVersion=0,5.0.2195sp4
+MinVersion=0,6.0.2195sp4
 DefaultDirName="{cf}\ASCOM\Switch"
 DisableDirPage=yes
 DisableProgramGroupPage=yes
@@ -38,6 +38,7 @@ Source: "C:\Users\Emchenko\source\repos\BorisE\VedrusSwitchDriver\VedrusSwitchDr
 ; Require a read-me HTML to appear after installation, maybe driver's Help doc
 Source: "C:\Users\Emchenko\source\repos\BorisE\VedrusSwitchDriver\VedrusSwitchDriver\ChangeLog.txt"; DestDir: "{app}"; Flags: isreadme
 ; TODO: Add other files needed by your driver here (add subfolders above)
+Source: "C:\Users\Emchenko\source\repos\BorisE\VedrusSwitchDriver\VedrusSwitchDriver\bin\Release\Newtonsoft.Json.dll"; DestDir: "{app}"
 
 
 ; Only if driver is .NET
