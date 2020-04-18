@@ -131,6 +131,7 @@
     </None>
     <Content Include="ASCOM.ico" />
     <None Include="Resources\ASCOM.bmp" />
+    <None Include="Vedrus2 Setup.iss" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
