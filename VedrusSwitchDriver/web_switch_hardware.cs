@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Globalization;
 
 using System.Web.Script.Serialization;
+using Newtonsoft.Json;
 
 using ASCOM;
 using ASCOM.Utilities;
@@ -37,12 +38,34 @@ namespace ASCOM.Vedrus
     199 - Astrograph
     */
 
+    public class switchHardwareLayerDataElementClass
+    {
+        public string Name = "";
+        public Int16 State = -1;
+    }
+    public class switchDataElementSetClass
+    {
+        public string Gpio = "";
+        public Int16 State = -1;
+    }
+
+    public class ResponseGet_JSON
+    {
+        public Boolean success = false;
+        public Dictionary<int, switchHardwareLayerDataElementClass> data;
+    }
+    public class ResponseSet_JSON
+    {
+        public Boolean success = false;
+        public List<switchDataElementSetClass> data;
+    }
+
     /// <summary>
     /// Class for working with Vedrus device
     /// </summary>
     public class Web_switch_hardware_class
     {
-        internal bool debugFlag = false;
+        internal bool debugFlag = true;
 
         /// <summary>
         /// Used to test hardaware connection lost failure
@@ -58,7 +81,8 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// Temp output sensors state
         /// </summary>
-        public List<switchDataRawClass> SWITCH_DATA_LIST = new List<switchDataRawClass>();
+        //public List<switchDataRawClass> SWITCH_DATA_LIST = new List<switchDataRawClass>();
+        public Dictionary<int,switchHardwareLayerDataElementClass> SWITCH_DATA_LIST = new Dictionary<int,switchHardwareLayerDataElementClass>();
 
 
         /// <summary>
@@ -90,6 +114,8 @@ namespace ASCOM.Vedrus
         //Caching output read
         private DateTime lastOutputReadCheck = EXPIRED_CACHE; //when was the last hardware checking provided for connect state
         public static int CACHE_OUTPUT_MAX_INTERVAL = 2; //how often to held hardware checking (in seconds)
+
+  
 
         /// <summary>
         /// Constructor of Web_switch_hardware_class
@@ -353,7 +379,7 @@ namespace ASCOM.Vedrus
             tl.LogMessage("Switch_checkLink_forced", "Enter");
 
             //Just call getOutputStatus() method. It would check and also parse output data as a side bonus :)
-            getOutputStatus(); 
+            readDeviceOutputsStatus(); 
 
             tl.LogMessage("Switch_checkLink_forced", "Exit. Returning status: " + hardware_connected_flag.ToString());
             return hardware_connected_flag;
@@ -363,7 +389,7 @@ namespace ASCOM.Vedrus
         /// Get output sensor status
         /// </summary>
         /// <returns>Returns bool TRUE or FALSE</returns> 
-        public bool? getOutputSwitchStatus(int SwitchId, bool forcedflag = false)
+        public bool? getOutputStatus(int SwitchId, bool forcedflag = false)
         {
             tl.LogMessage("getOutputSwitchStatus", "Enter (" + SwitchId+")");
 
@@ -373,7 +399,7 @@ namespace ASCOM.Vedrus
             {
                 // Read output data for ALL SWITCHES
                 tl.LogMessage("getOutputSwitchStatus", String.Format("Cached expired, read hardware values [in cache was: {0}s]...", passed.TotalSeconds));
-                getOutputStatus();
+                readDeviceOutputsStatus();
 
                 // Reset read cache moment
                 lastOutputReadCheck = DateTime.Now;
@@ -384,15 +410,15 @@ namespace ASCOM.Vedrus
                 tl.LogMessage("getOutputSwitchStatus", "Using cached values [in cache:" + passed.TotalSeconds + "s]");
             }
 
-            ///////////////
+            //Return switch value from Dictionary
             bool? curSwitchState = null;
-            if (SWITCH_DATA_LIST.Count() < (SwitchId+1))
+            if (SwitchId >= SWITCH_DATA_LIST.Count())
             {
                 curSwitchState = null;
             }
             else
             {
-                curSwitchState = (SWITCH_DATA_LIST[SwitchId].Val == 1);
+                curSwitchState = (SWITCH_DATA_LIST.ElementAt(SwitchId).Value.State == 1);
             }
             
             tl.LogMessage("getOutputSwitchStatus", "getOutputSwitchStatus(" + SwitchId + "):" + curSwitchState);
@@ -407,7 +433,7 @@ namespace ASCOM.Vedrus
         /// Get output relay status
         /// </summary>
         /// <returns>Returns int array [0..8] with status flags of each realya status. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
-        public bool getOutputStatus()
+        public bool readDeviceOutputsStatus()
         {
             tl.LogMessage("getOutputStatus", "Enter");
 
@@ -429,7 +455,7 @@ namespace ASCOM.Vedrus
             if (debugFlag)
             {
             //FOR DEBUGGING
-                siteipURL = "http://localhost/power/get.php";
+                siteipURL = "http://localhost/power2/get.php";
             }
             else
             {
@@ -438,7 +464,7 @@ namespace ASCOM.Vedrus
                 // sUrl = "http://192.168.2.99/REST/relay/";
                 // Method GET
                 // Respone: { "success":true,"data":{ "107":{ "name":"\u0420\u0435\u043b\u0435 1","state":0},"201":{ "name":"\u0420\u0435\u043b\u0435 2","state":0},"198":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u041a\u043e\u043c\u043f","state":1},"199":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u0410\u0441\u0442\u0440\u043e\u0433\u0440\u0430\u0444","state":0} } }
-
+                //          { "success":true,"data":{ "107":{ "name":"Реле 1","state":0},"201":{ "name":"Реле 2","state":0},"198":{ "name":"Борис-Комп","state":1},"199":{ "name":"Борис-Астрограф","state":0} } }
                 siteipURL = "http://" + ip_addr + ":" + ip_port + "/REST/relay/";
             }
             tl.LogMessage("getOutputStatus", "Download url:" + siteipURL);
@@ -487,21 +513,24 @@ namespace ASCOM.Vedrus
 
             // Parse data
             // Respone: { "success":true,"data":{ "107":{ "name":"\u0420\u0435\u043b\u0435 1","state":0},"201":{ "name":"\u0420\u0435\u043b\u0435 2","state":0},"198":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u041a\u043e\u043c\u043f","state":1},"199":{ "name":"\u0411\u043e\u0440\u0438\u0441-\u0410\u0441\u0442\u0440\u043e\u0433\u0440\u0430\u0444","state":0} } }
+            // { "success":true,"data":{ "107":{ "name":"Реле 1","state":0},"201":{ "name":"Реле 2","state":0},"198":{ "name":"Борис-Комп","state":1},"199":{ "name":"Борис-Астрограф","state":0} } }
             try
             {
-                //Deserialize into dictionary
-                Dictionary<string, Int16> relaysRead = new Dictionary<string, Int16>();
-                var jsSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
-                relaysRead = jsSerializer.Deserialize<Dictionary<string, Int16>>(s);
 
-                //Read into LIST with SWITCH values
-                List<switchDataRawClass> tempSwitchData = new List<switchDataRawClass>();
+                ResponseGet_JSON responseObj = JsonConvert.DeserializeObject<ResponseGet_JSON>(s);
+                tl.LogMessage("getOutputStatus", "Response succcess:" + responseObj.success);
 
-                SWITCH_DATA_LIST.Clear();
-                foreach (KeyValuePair<string, Int16> rel in relaysRead)
+                if (responseObj.success)
                 {
-                    SWITCH_DATA_LIST.Add(new switchDataRawClass() { Name = rel.Key, Val = rel.Value });
+                    //Read into DICTIONARY with SWITCH values
+                    SWITCH_DATA_LIST.Clear();
+                    foreach (KeyValuePair<int, switchHardwareLayerDataElementClass> rel in responseObj.data)
+                    {
+                        SWITCH_DATA_LIST.Add(rel.Key, new switchHardwareLayerDataElementClass() { Name = rel.Value.Name, State = rel.Value.State });
+                    }
+
                 }
+
 
                 lastOutputReadCheck = DateTime.Now; //mark cache was renewed
                 tl.LogMessage("getOutputStatus", "Data was read");
@@ -516,12 +545,14 @@ namespace ASCOM.Vedrus
             return true;
         }
 
-        public bool setOutputStatus(int PortIndex, bool bPortValue)
+        public bool setOutputStatus(string PortName, bool bPortValue)
         {
-            tl.LogMessage("setOutputStatus", "Enter (" + PortIndex + "," + bPortValue + ")");
+            tl.LogMessage("setOutputStatus", "Enter (" + PortName + "," + bPortValue + ")");
+
+            throw new ASCOM.NotImplementedException();
 
             //get channel name
-            string ChannelName = Switch.SwitchData[PortIndex].Name;
+            string ChannelName = "";
 
             return setOutputStatus(ChannelName, bPortValue);
         }
@@ -529,12 +560,12 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// Chage output relay state
         /// </summary>
-        /// <param name="PortNumber">Relay port number, int [1..9]</param>
+        /// <param name="PortNumber">Relay port number, int [0..max]</param>
         /// <param name="bPortValue">Port value flase = 0, true = 1</param>
         /// <returns>Returns true in case of success</returns> 
-        public bool setOutputStatus(string PortName, bool bPortValue)
+        public bool setOutputStatus(int PortId, bool bPortValue)
         {
-            tl.LogMessage("setOutputStatus", "Enter (" + PortName + "," + bPortValue + ")");
+            tl.LogMessage("setOutputStatus", "Enter (" + PortId + "," + bPortValue + ")");
 
             //convert port value to int
             int intPortValue = (bPortValue ? 1 : 0);
@@ -552,20 +583,24 @@ namespace ASCOM.Vedrus
                 //return ret;
             }
 
-            string paramString = "channel=" + PortName + "&state=" + intPortValue;
             string siteipURL;
             if (debugFlag)
             {
                 //FOR DEBUGGING
-                siteipURL = "http://localhost/power/set.php";
+                siteipURL = "http://localhost/power2/set.php";
             }
             else
             {
                 // Vedrus style
-                // http://192.168.2.199/relay.php
-                // {"boris_pc":1,"boris_scope":0,"roman_pc":0,"roman_scope":0}
-                siteipURL = "http://" + ip_addr + ":" + ip_port + "/relay.php";
+                // http://192.168.2.99/REST/relay/
+                // gpio=199&state=1
+                // Response: {"success":true,"data":{"gpio":199,"state":1}}
+                siteipURL = "http://" + ip_addr + ":" + ip_port + "/REST/relay/";
             }
+
+            string paramString = "gpio=" + getGPIOvalueBySwitchId(PortId) + "&state=" + intPortValue;
+
+
             tl.LogMessage("setOutputStatus", "Download url:" + siteipURL);
             tl.LogMessage("setOutputStatus", "Param String:" + paramString);
 
@@ -583,6 +618,28 @@ namespace ASCOM.Vedrus
                 VedrusSemaphore.Release();//unlock ip9212 device for others
                 tlsem.LogMessage("setOutputStatus", "Release");
 
+                try
+                {
+
+                    ResponseSet_JSON responseObj = JsonConvert.DeserializeObject<ResponseSet_JSON>(s);
+                    tl.LogMessage("setOutputStatus", "Response succcess:" + responseObj.success);
+
+                    if (!responseObj.success)
+                    {
+                        tl.LogMessage("setOutputStatus", "exit by unsuccessful query error");
+                        return false; //error
+                    }
+
+                    lastOutputReadCheck = DateTime.Now; //mark cache was renewed
+                    tl.LogMessage("setOutputStatus", "Data was read");
+                }
+                catch (Exception ex)
+                {
+                    tl.LogMessage("setOutputStatus", "ERROR parsing data (Exception: " + ex.Message + ")!");
+                    tl.LogMessage("setOutputStatus", "exit by parse error");
+                    return false; //error
+                }
+
                 tl.LogMessage("setOutputStatus", "Download str:" + s);
 
                 ret = true;
@@ -595,7 +652,7 @@ namespace ASCOM.Vedrus
                 ret = false;
 
                 tl.LogMessage("setOutputStatus", "Error:" + e.Message);
-                ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortName + "," + intPortValue + "): Couldn't reach network server";
+                ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortId + "," + intPortValue + "): Couldn't reach network server";
                 //throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
                 tl.LogMessage("setOutputStatus", "Exit by web error");
                 return ret;
@@ -605,6 +662,20 @@ namespace ASCOM.Vedrus
             lastOutputReadCheck = EXPIRED_CACHE;
 
             return ret;
+        }
+        internal int getGPIOvalueBySwitchId(int portid)
+        {
+            int gpio = -1;
+            if (SWITCH_DATA_LIST.Count > 0)
+            {
+                gpio = SWITCH_DATA_LIST.ElementAt(portid).Key; //get GPIO value by Port ID
+            }
+            else
+            {
+                ASCOM_ERROR_MESSAGE = "getGPIOvalueBySwitchId(): SWITCH_DATA_LIST is empty";
+                throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
+            }
+            return gpio;
         }
 
         private void clearCache()
@@ -680,11 +751,7 @@ namespace ASCOM.Vedrus
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public class switchDataRawClass
-    {
-        public string Name = "";
-        public Int16 Val = -1;
-    }
+
 
 
 

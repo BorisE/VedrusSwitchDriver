@@ -1,8 +1,15 @@
 ﻿ASCOM Vedrus Power Server Switch driver
-Written 2017 by Boris Emchenko
+Written 2017-2020 by Boris Emchenko
 http://astromania.info
 
 Change log
+
+ 2.0.0.0 [18.04.2020]
+- first working beta of stone version
+- read switch data from hardware (incl num of switches)
+- number of switches are now variable
+- some mechanism reworked (RO flag, dialog logic)
+
 
  1.0.1.0 [01.10.2017]
 - first working beta

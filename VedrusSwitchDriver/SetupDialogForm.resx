@@ -872,7 +872,7 @@ With high network query intensivity the device can hang. So the driver is using 
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>6</value>
   </data>
   <data name="label2.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -905,6 +905,27 @@ With high network query intensivity the device can hang. So the driver is using 
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;label2.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="txtNumberOfSwitches.Location" type="System.Drawing.Point, System.Drawing">
+    <value>418, 39</value>
+  </data>
+  <data name="txtNumberOfSwitches.Size" type="System.Drawing.Size, System.Drawing">
+    <value>55, 31</value>
+  </data>
+  <data name="txtNumberOfSwitches.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;txtNumberOfSwitches.Name" xml:space="preserve">
+    <value>txtNumberOfSwitches</value>
+  </data>
+  <data name="&gt;&gt;txtNumberOfSwitches.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;txtNumberOfSwitches.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;txtNumberOfSwitches.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <metadata name="SwitchId.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -947,7 +968,7 @@ With high network query intensivity the device can hang. So the driver is using 
     <value>100</value>
   </data>
   <data name="dataGridOutputSwitch.Location" type="System.Drawing.Point, System.Drawing">
-    <value>26, 39</value>
+    <value>16, 96</value>
   </data>
   <data name="dataGridOutputSwitch.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 6, 6, 6</value>
@@ -956,10 +977,10 @@ With high network query intensivity the device can hang. So the driver is using 
     <value>30</value>
   </data>
   <data name="dataGridOutputSwitch.ScrollBars" type="System.Windows.Forms.ScrollBars, System.Windows.Forms">
-    <value>None</value>
+    <value>Vertical</value>
   </data>
   <data name="dataGridOutputSwitch.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1006, 341</value>
+    <value>1032, 316</value>
   </data>
   <data name="dataGridOutputSwitch.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -983,7 +1004,40 @@ This cannot be changed</value>
     <value>groupBox2</value>
   </data>
   <data name="&gt;&gt;dataGridOutputSwitch.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
+  </data>
+  <data name="label12.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label12.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 42</value>
+  </data>
+  <data name="label12.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 0, 6, 0</value>
+  </data>
+  <data name="label12.Size" type="System.Drawing.Size, System.Drawing">
+    <value>200, 25</value>
+  </data>
+  <data name="label12.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="label12.Text" xml:space="preserve">
+    <value>Number of switches</value>
+  </data>
+  <data name="&gt;&gt;label12.Name" xml:space="preserve">
+    <value>label12</value>
+  </data>
+  <data name="&gt;&gt;label12.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label12.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;label12.ZOrder" xml:space="preserve">
+    <value>2</value>
   </data>
   <data name="groupBox2.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 397</value>
@@ -995,7 +1049,7 @@ This cannot be changed</value>
     <value>6, 6, 6, 6</value>
   </data>
   <data name="groupBox2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>1060, 397</value>
+    <value>1060, 424</value>
   </data>
   <data name="groupBox2.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -1039,6 +1093,18 @@ This cannot be changed</value>
   <data name="&gt;&gt;login.ZOrder" xml:space="preserve">
     <value>4</value>
   </data>
+  <data name="&gt;&gt;btnTestRead.Name" xml:space="preserve">
+    <value>btnTestRead</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
   <data name="&gt;&gt;pass.Name" xml:space="preserve">
     <value>pass</value>
   </data>
@@ -1049,7 +1115,7 @@ This cannot be changed</value>
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;pass.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>7</value>
   </data>
   <data name="&gt;&gt;port.Name" xml:space="preserve">
     <value>port</value>
@@ -1061,7 +1127,7 @@ This cannot be changed</value>
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;port.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>8</value>
   </data>
   <data name="groupBox1.Location" type="System.Drawing.Point, System.Drawing">
     <value>6, 17</value>
@@ -1191,7 +1257,7 @@ Factory default for the device is "12345678"
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;pass.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>7</value>
   </data>
   <data name="port.Location" type="System.Drawing.Point, System.Drawing">
     <value>360, 36</value>
@@ -1218,7 +1284,7 @@ Factory default for the device is "12345678"
     <value>groupBox1</value>
   </data>
   <data name="&gt;&gt;port.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>8</value>
   </data>
   <data name="linkAstromania.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -1391,6 +1457,39 @@ Factory default for the device is "12345678"
   <data name="&gt;&gt;groupBox5.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="btnTestRead.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
+  <data name="btnTestRead.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="btnTestRead.Location" type="System.Drawing.Point, System.Drawing">
+    <value>459, 28</value>
+  </data>
+  <data name="btnTestRead.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 6, 6, 6</value>
+  </data>
+  <data name="btnTestRead.Size" type="System.Drawing.Size, System.Drawing">
+    <value>153, 47</value>
+  </data>
+  <data name="btnTestRead.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="btnTestRead.Text" xml:space="preserve">
+    <value>Test&amp;Read</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.Name" xml:space="preserve">
+    <value>btnTestRead</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;btnTestRead.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -1401,7 +1500,7 @@ Factory default for the device is "12345678"
     <value>12, 25</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>1078, 802</value>
+    <value>1078, 824</value>
   </data>
   <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>6, 6, 6, 6</value>
@@ -1411,12 +1510,6 @@ Factory default for the device is "12345678"
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>ASCOM Vedrus Switch Driver Setup</value>
-  </data>
-  <data name="&gt;&gt;myToolTip.Name" xml:space="preserve">
-    <value>myToolTip</value>
-  </data>
-  <data name="&gt;&gt;myToolTip.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolTip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;SwitchId.Name" xml:space="preserve">
     <value>SwitchId</value>
@@ -1441,6 +1534,12 @@ Factory default for the device is "12345678"
   </data>
   <data name="&gt;&gt;SwitchDescription.Type" xml:space="preserve">
     <value>System.Windows.Forms.DataGridViewTextBoxColumn, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;myToolTip.Name" xml:space="preserve">
+    <value>myToolTip</value>
+  </data>
+  <data name="&gt;&gt;myToolTip.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolTip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>SetupDialogForm</value>

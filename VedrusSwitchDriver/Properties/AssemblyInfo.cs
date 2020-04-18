@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-// TODO - Add your authorship information here
 [assembly: AssemblyTitle("ASCOM.Vedrus.Switch2")]
 [assembly: AssemblyDescription("ASCOM Switch driver for Vedrus v2")]
 [assembly: AssemblyConfiguration("")]
@@ -34,6 +33,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
 //
-// TODO - Set your driver's version here
 [assembly: AssemblyVersion("6.4.*")]
 [assembly: AssemblyFileVersion("2.0.0.0")]

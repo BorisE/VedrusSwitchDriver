@@ -177,7 +177,7 @@ namespace ASCOM.TestForm
 
                 string stro = "";
 
-                for (int i = 1; i <= driver.MaxSwitch; i++)
+                for (short i = 1; i <= driver.MaxSwitch; i++)
                 {
                     try
                     {
@@ -186,7 +186,7 @@ namespace ASCOM.TestForm
                         ((TextBox)this.Controls.Find("txtOutName" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();
                         ((TextBox)this.Controls.Find("txtOutDesc" + i, true)[0]).Text = driver.GetSwitchDescription((short)(i - 1)).ToString();
 
-                        stro = driver.Action("GetSwitchROFlag", (i - 1).ToString()).ToString();
+                        stro = (!driver.CanWrite((short)(i - 1))).ToString();
                         ((TextBox)this.Controls.Find("txtOutput" + i, true)[0]).Text = stro;
 
                         ((CheckBox)this.Controls.Find("chkOut" + i, true)[0]).Text = driver.GetSwitchName((short)(i - 1)).ToString();

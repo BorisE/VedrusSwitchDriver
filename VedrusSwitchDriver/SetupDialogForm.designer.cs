@@ -52,6 +52,10 @@ namespace ASCOM.Vedrus
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.dataGridOutputSwitch = new System.Windows.Forms.DataGridView();
+            this.SwitchId = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.SwitchName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.SwitchROFlag = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.SwitchDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.ipaddr = new System.Windows.Forms.TextBox();
             this.login = new System.Windows.Forms.TextBox();
@@ -63,10 +67,9 @@ namespace ASCOM.Vedrus
             this.linkAviosys = new System.Windows.Forms.LinkLabel();
             this.picAstromania = new System.Windows.Forms.PictureBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.SwitchId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.SwitchName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.SwitchROFlag = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.SwitchDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btnTestRead = new System.Windows.Forms.Button();
+            this.txtNumberOfSwitches = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.picASCOM)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -217,7 +220,9 @@ namespace ASCOM.Vedrus
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.txtNumberOfSwitches);
             this.groupBox2.Controls.Add(this.dataGridOutputSwitch);
+            this.groupBox2.Controls.Add(this.label12);
             resources.ApplyResources(this.groupBox2, "groupBox2");
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.TabStop = false;
@@ -239,6 +244,31 @@ namespace ASCOM.Vedrus
             this.dataGridOutputSwitch.ShowCellToolTips = false;
             this.myToolTip.SetToolTip(this.dataGridOutputSwitch, resources.GetString("dataGridOutputSwitch.ToolTip"));
             // 
+            // SwitchId
+            // 
+            resources.ApplyResources(this.SwitchId, "SwitchId");
+            this.SwitchId.Name = "SwitchId";
+            this.SwitchId.ReadOnly = true;
+            this.SwitchId.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // SwitchName
+            // 
+            resources.ApplyResources(this.SwitchName, "SwitchName");
+            this.SwitchName.Name = "SwitchName";
+            this.SwitchName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // SwitchROFlag
+            // 
+            resources.ApplyResources(this.SwitchROFlag, "SwitchROFlag");
+            this.SwitchROFlag.Name = "SwitchROFlag";
+            // 
+            // SwitchDescription
+            // 
+            this.SwitchDescription.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            resources.ApplyResources(this.SwitchDescription, "SwitchDescription");
+            this.SwitchDescription.Name = "SwitchDescription";
+            this.SwitchDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.label2);
@@ -246,6 +276,7 @@ namespace ASCOM.Vedrus
             this.groupBox1.Controls.Add(this.ipaddr);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.login);
+            this.groupBox1.Controls.Add(this.btnTestRead);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.pass);
             this.groupBox1.Controls.Add(this.port);
@@ -324,30 +355,22 @@ namespace ASCOM.Vedrus
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.TabStop = false;
             // 
-            // SwitchId
+            // btnTestRead
             // 
-            resources.ApplyResources(this.SwitchId, "SwitchId");
-            this.SwitchId.Name = "SwitchId";
-            this.SwitchId.ReadOnly = true;
-            this.SwitchId.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            resources.ApplyResources(this.btnTestRead, "btnTestRead");
+            this.btnTestRead.Name = "btnTestRead";
+            this.btnTestRead.UseVisualStyleBackColor = true;
+            this.btnTestRead.Click += new System.EventHandler(this.btnTestRead_Click);
             // 
-            // SwitchName
+            // txtNumberOfSwitches
             // 
-            resources.ApplyResources(this.SwitchName, "SwitchName");
-            this.SwitchName.Name = "SwitchName";
-            this.SwitchName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            resources.ApplyResources(this.txtNumberOfSwitches, "txtNumberOfSwitches");
+            this.txtNumberOfSwitches.Name = "txtNumberOfSwitches";
             // 
-            // SwitchROFlag
+            // label12
             // 
-            resources.ApplyResources(this.SwitchROFlag, "SwitchROFlag");
-            this.SwitchROFlag.Name = "SwitchROFlag";
-            // 
-            // SwitchDescription
-            // 
-            this.SwitchDescription.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            resources.ApplyResources(this.SwitchDescription, "SwitchDescription");
-            this.SwitchDescription.Name = "SwitchDescription";
-            this.SwitchDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            resources.ApplyResources(this.label12, "label12");
+            this.label12.Name = "label12";
             // 
             // SetupDialogForm
             // 
@@ -369,6 +392,7 @@ namespace ASCOM.Vedrus
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridOutputSwitch)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
@@ -418,5 +442,8 @@ namespace ASCOM.Vedrus
         private System.Windows.Forms.DataGridViewTextBoxColumn SwitchName;
         private System.Windows.Forms.DataGridViewCheckBoxColumn SwitchROFlag;
         private System.Windows.Forms.DataGridViewTextBoxColumn SwitchDescription;
+        private System.Windows.Forms.Button btnTestRead;
+        private System.Windows.Forms.TextBox txtNumberOfSwitches;
+        private System.Windows.Forms.Label label12;
     }
 }

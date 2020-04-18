@@ -14,6 +14,7 @@
 // 15-06-2015	XXX 2.0.10	Last IP9212 release
 // 02-09-2017	XXX 1.0.0	Deep alpha1
 // 01-10-2017	XXX 1.0.1	First Beta
+// 18-04-2020   XXX 2.0.0   Frist Beta of second generation (stone observatory)
 // --------------------------------------------------------------------------------
 //
 
@@ -73,7 +74,7 @@ namespace ASCOM.Vedrus
         /// <summary>
         /// Hardware layer class for this Switch
         /// </summary>
-        Web_switch_hardware_class Hardware;
+        internal Web_switch_hardware_class Hardware;
 
         /// <summary>
         /// Private variable to hold the connected state
@@ -87,8 +88,14 @@ namespace ASCOM.Vedrus
         /// </summary>
         private static TraceLogger tl;
 
-        // NUMBER OF SWITCHES
-        internal static short numSwitch = 4;
+
+        //*******************************************************************************
+        // ARRAY WITH SWITCH NAMES AND DESCRIPTION
+        //*******************************************************************************
+        //Main Switch Data Class
+        public static List<switchDataClass> SwitchData = new List<switchDataClass>();
+        //******************************************************************************
+
 
         //Settings
         #region Settings variables        
@@ -99,26 +106,11 @@ namespace ASCOM.Vedrus
 
         public static string ip_addr, ip_port, ip_login, ip_pass;
         internal static string ip_addr_profilename = "IP address", ip_port_profilename = "Port number", ip_login_profilename = "login", ip_pass_profilename = "password";
-        internal static string ip_addr_default = "192.168.1.90", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "12345678";
+        internal static string ip_addr_default = "192.168.2.99", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "1111111";
 
         internal static string switch_name_profilename = "switchname";
         internal static string switch_name_profilename_roflag = "switchROflag";
         internal static string switch_description_profilename = "switchdescription";
-
-
-        //*******************************************************************************
-        // ARRAY WITH SWITCH NAMES AND DESCRIPTION
-        //*******************************************************************************
-        public class switchDataClass
-        {
-            public string Name = "";
-            public bool? ROFlag = null;
-            public string Desc = "";
-            public bool? Val = null;
-        }
-        //Main Switch Data Class
-        public static List<switchDataClass> SwitchData = new List<switchDataClass>();
-        //******************************************************************************
 
         public static string currentLang;
         internal static string currentLocalizationProfileName = "Current language";
@@ -136,6 +128,13 @@ namespace ASCOM.Vedrus
         internal static string InputRead_Cache_Timeout_ProfileName = "InputRead_Cache_Timeout";
         internal static int InputRead_Cache_Timeout_def = 5;
 
+        // NUMBER OF SWITCHES
+        internal static short numSwitch = 5;
+        internal static string NumberOfSwitch_ProfileName = "NumberOfSwitch";
+        internal static short NumberOfSwitch_def = 5;
+
+        
+
         #endregion Settings variables
 
 
@@ -152,7 +151,7 @@ namespace ASCOM.Vedrus
             //init hardware class
             Hardware = new Web_switch_hardware_class(traceState);
 
-
+            SwitchData.Clear();
             // init SwitchData array
             for (int i = 0; i < numSwitch; i++)
             {
@@ -188,7 +187,7 @@ namespace ASCOM.Vedrus
             if (IsConnectedWrapper(CONNECTIONCHECK_FORCED))
                 System.Windows.Forms.MessageBox.Show("Already connected, just press OK");
 
-            using (SetupDialogForm F = new SetupDialogForm())
+            using (SetupDialogForm F = new SetupDialogForm(this))
             {
                 var result = F.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
@@ -268,7 +267,7 @@ namespace ASCOM.Vedrus
 
         public void CommandBlind(string command, bool raw)
         {
-            CheckConnected("CommandBlind");
+            CheckConnectedAndThrowException("CommandBlind");
             // Call CommandString and return as soon as it finishes
             this.CommandString(command, raw);
             // or
@@ -278,7 +277,7 @@ namespace ASCOM.Vedrus
 
         public bool CommandBool(string command, bool raw)
         {
-            CheckConnected("CommandBool");
+            CheckConnectedAndThrowException("CommandBool");
             string ret = CommandString(command, raw);
             // TODO decode the return string and return true or false
             // or
@@ -288,7 +287,7 @@ namespace ASCOM.Vedrus
 
         public string CommandString(string command, bool raw)
         {
-            CheckConnected("CommandString");
+            CheckConnectedAndThrowException("CommandString");
             // it's a good idea to put all the low level communication with the device here,
             // then all communication calls this function
             // you need something to ensure that only one command is in progress at a time
@@ -482,9 +481,17 @@ namespace ASCOM.Vedrus
             Validate("CanWrite", id);
 
             bool retFlag = false;
+
             if (id <= this.MaxSwitch-1)
             {
-                retFlag = true;
+                if ((SwitchData[id].ROFlag ?? false))
+                {
+                    retFlag = false;
+                }
+                else
+                {
+                    retFlag = true;
+                }
             }
             else
             {
@@ -498,26 +505,28 @@ namespace ASCOM.Vedrus
         #region boolean switch members
 
         /// <summary>
-        /// Return the state of switch n
+        /// Return the state of switch n,
         /// a multi-value switch must throw a not implemented exception
         /// </summary>
-        /// <param name="id">The switch number to return</param>
+        /// <param name="switchId">The switch number to return</param>
         /// <returns>
-        /// True or false
+        /// True if success or false otherwise
         /// </returns>
-        public bool GetSwitch(short id)
+        public bool GetSwitch(short switchId)
         {
-            Validate("GetSwitch", id);
+            Validate("GetSwitch", switchId);
 
             bool? retVal = false;
-            if (id >= 0 && id <= this.MaxSwitch - 1)
+            if (switchId >= 0 && switchId <= this.MaxSwitch - 1)
             {
                 //read value for output switch
-                retVal = Hardware.getOutputSwitchStatus(id);
+                retVal = Hardware.getOutputStatus(switchId);
+                //TODO read all switch values to array?
+
 
                 if (retVal == null)
                 {
-                    tl.LogMessage("GetSwitch", string.Format("ERROR! GetSwitch({0}) returns null value! ", id));
+                    tl.LogMessage("GetSwitch", string.Format("ERROR! GetSwitch({0}) returns null value! ", switchId));
                     Connected = false;
                     retVal = false;
                     //throw new ArgumentNullException("Switch [" + id + "] state cannot be read");
@@ -526,10 +535,10 @@ namespace ASCOM.Vedrus
             }
             else
             {
-                throw new ASCOM.InvalidValueException("Device id ("+ id +") is out of range [0;" + (this.MaxSwitch - 1) + "]");
+                throw new ASCOM.InvalidValueException("Device id ("+ switchId +") is out of range [0;" + (this.MaxSwitch - 1) + "]");
             }
 
-            tl.LogMessage("GetSwitch", string.Format("GetSwitch({0}) = {1}", id, retVal));
+            tl.LogMessage("GetSwitch", string.Format("GetSwitch({0}) = {1}", switchId, retVal));
             return (bool)retVal;
         }
 
@@ -549,11 +558,14 @@ namespace ASCOM.Vedrus
             {
                 var str = string.Format("SetSwitch({0}) - Cannot Write", id);
                 tl.LogMessage("SetSwitch", str);
-                throw new MethodNotImplementedException(str);
+                throw new ASCOM.InvalidOperationException(str);
             }
+            else
+            {
+                bool retVal = Hardware.setOutputStatus(id, state);
 
-            bool retVal = Hardware.setOutputStatus(id, state);
-            tl.LogMessage("SetSwitch", string.Format("SetSwitch({0}): {1}", id, retVal));
+                tl.LogMessage("SetSwitch", string.Format("SetSwitch({0}): {1}", id, retVal));
+            }
         }
 
         #endregion
@@ -817,7 +829,7 @@ namespace ASCOM.Vedrus
         /// Use this function to throw an exception if we aren't connected to the hardware
         /// </summary>
         /// <param name="message"></param>
-        private void CheckConnected(string message)
+        private void CheckConnectedAndThrowException(string message)
         {
             tl.LogMessage("CheckConnected", "[" + message + "]");
             if (!IsConnectedWrapper())
@@ -825,6 +837,25 @@ namespace ASCOM.Vedrus
                 throw new ASCOM.NotConnectedException(message);
             }
         }
+
+        /// <summary>
+        /// Read switch datat from hardware (such as switch name, ids and so on).
+        /// CAUTION: OVERWRITES CURRENT SETTINGS!
+        /// </summary>
+        internal void readSwitchDataFromHardware()
+        {
+            //Query data
+            if (Hardware.readDeviceOutputsStatus())
+            {
+                //Parse data into driver array
+                SwitchData.Clear();
+                foreach (KeyValuePair<int, switchHardwareLayerDataElementClass> rel in Hardware.SWITCH_DATA_LIST)
+                {
+                    SwitchData.Add(new switchDataClass() { GPIO = rel.Key, Name = rel.Value.Name, State = (rel.Value.State == 1), ROFlag = false, Desc = "" });
+                }
+            }
+        }
+
 
         /// <summary>
         /// Read settings from ASCOM profile storage
@@ -950,6 +981,17 @@ namespace ASCOM.Vedrus
                 Web_switch_hardware_class.CACHE_CONNECTED_CHECK_MAX_INTERVAL = ConnectCheck_Cache_Timeout;
                 Web_switch_hardware_class.CACHE_OUTPUT_MAX_INTERVAL = OutputRead_Cache_Timeout;
 
+                try
+                {
+                    numSwitch = Convert.ToInt16(p.GetValue(driverID, NumberOfSwitch_ProfileName, string.Empty, NumberOfSwitch_def.ToString()));
+                }
+                catch (Exception e)
+                {
+                    numSwitch = NumberOfSwitch_def;
+                    tl.LogMessage("readSettings", "Wrong input string for [numSwitch]: [" + e.Message + "]");
+                }
+
+
                 //Switch data
                 for (int i = 0; i < numSwitch; i++)
                 {
@@ -1020,6 +1062,8 @@ namespace ASCOM.Vedrus
                 p.WriteValue(driverID, OutputRead_Cache_Timeout_ProfileName, OutputRead_Cache_Timeout.ToString());
                 p.WriteValue(driverID, InputRead_Cache_Timeout_ProfileName, InputRead_Cache_Timeout.ToString());
 
+                p.WriteValue(driverID, NumberOfSwitch_ProfileName, numSwitch.ToString());
+
                 //Switch data
                 for (int i = 0; i < numSwitch ; i++)
                 {
@@ -1046,5 +1090,13 @@ namespace ASCOM.Vedrus
             tl.LogMessage(identifier, msg);
         }
         #endregion
+    }
+    public class switchDataClass
+    {
+        public int GPIO = -1;
+        public string Name = "";
+        public bool? ROFlag = null;
+        public string Desc = "";
+        public bool? State = null;
     }
 }

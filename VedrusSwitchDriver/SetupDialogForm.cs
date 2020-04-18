@@ -20,8 +20,13 @@ namespace ASCOM.Vedrus
     public partial class SetupDialogForm : Form
     {
 
-        public SetupDialogForm()
+        Switch ParentSwitch;
+
+        public SetupDialogForm(Switch ExtRef)
         {
+
+            ParentSwitch = ExtRef;
+
             //Set language
             Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(Switch.currentLang);
             Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(Switch.currentLang);
@@ -59,11 +64,11 @@ namespace ASCOM.Vedrus
             cmbLang.ValueMember = "Name";
             cmbLang.SelectedValue = Switch.currentLang;
 
+
         }
 
         private void SetupDialogForm_Load(object sender, EventArgs e)
         {
-           
             PopulateGrid();
         }
         
@@ -88,12 +93,23 @@ namespace ASCOM.Vedrus
 
                 MyWebClient.Timeout = Convert.ToInt32(txtNetworkTimeout.Text) * 1000;
 
+                //Convert data from grid to settings vars
+                SaveGrid();
+
+                Int16 x;
+                if (Int16.TryParse(txtNumberOfSwitches.Text, out x))
+                {
+                    Switch.numSwitch = x;
+                }
+                else
+                {
+                    Switch.numSwitch = (Int16) Switch.SwitchData.Count;
+                }
+
 
                 //Language combobox
                 Switch.currentLang = cmbLang.SelectedValue.ToString();
 
-                //Convert data from grid to settings vars
-                SaveGrid();
 
                 //Save settings into ASCOM Profile
                 Switch.writeSettings();
@@ -110,6 +126,27 @@ namespace ASCOM.Vedrus
         }
 
 
+        private void btnTestRead_Click(object sender, EventArgs e)
+        {
+            if (ParentSwitch.Hardware.IsHardwareReachable(true))
+            {
+                btnTestRead.BackColor = Color.LightGreen;
+                ParentSwitch.readSwitchDataFromHardware();
+                Switch.numSwitch = (Int16) Switch.SwitchData.Count;
+
+                //add GPIO tag into description
+                for (short i = 0; i < Switch.numSwitch; i++)
+                {
+                    Switch.SwitchData[i].Desc = "[" + Switch.SwitchData[i].GPIO + "]" + Switch.SwitchData[i].Desc;
+                }
+
+                PopulateGrid();
+            }
+            else
+            {
+                btnTestRead.BackColor = Color.LightCoral;
+            }
+        }
         private void BrowseToAscom(object sender, EventArgs e) // Click on ASCOM logo event handler
         {
             try
@@ -127,22 +164,25 @@ namespace ASCOM.Vedrus
             }
         }
 
+
         /// <summary>
         /// Read data from settings vars and populate grid
         /// </summary>
         private void PopulateGrid()
         {
+            txtNumberOfSwitches.Text = Switch.numSwitch.ToString();
+
             // Clear grids
             dataGridOutputSwitch.Rows.Clear();
             // Populate both grids
-            for (int curRowIndex = 0; curRowIndex <= Switch.numSwitch-1; curRowIndex++)
+            for (int curRowIndex = 0; curRowIndex <= Switch.numSwitch - 1; curRowIndex++)
             {
                 //Output switches
                 if (1 != null)
                 {
                     //Add sensor to grid
                     dataGridOutputSwitch.Rows.Add();
-                    dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchId"].Value = (curRowIndex + 1).ToString() + (curRowIndex < 4 ? " NC" : " NO"); ;
+                    dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchId"].Value = (curRowIndex ).ToString();
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchName"].Value = Switch.SwitchData[curRowIndex].Name;
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchROFlag"].Value = (Switch.SwitchData[curRowIndex].ROFlag ?? true);
                     dataGridOutputSwitch.Rows[curRowIndex].Cells["SwitchDescription"].Value = Switch.SwitchData[curRowIndex].Desc;
@@ -275,7 +315,6 @@ namespace ASCOM.Vedrus
             dt = dt.AddHours(TimeZone.CurrentTimeZone.GetUtcOffset(dt).Hours);
             return dt;
         }
-
 
     }
 }
